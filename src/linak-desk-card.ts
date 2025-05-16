@@ -205,14 +205,14 @@ export class LinakDeskCard extends LitElement {
         flex: 1;
         position: relative;
         padding: 0px;
-        border-radius: 4px;
+        border-radius: 16px;
         overflow: hidden;
       }
       .preview {
         background: linear-gradient(to bottom, var(--primary-color), var(--dark-primary-color));
         overflow: hidden;
         position: relative;
-        min-height: 365px;
+        min-height: 240px;
       }
       .preview img {
         position: absolute;
