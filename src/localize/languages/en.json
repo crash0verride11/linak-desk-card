@@ -11,11 +11,16 @@
     "name": "Name (Optional)",
     "desk":"Desk Entity (Required)",
     "height_sensor":"Height Sensor (Required)",
-    "connection_sensor":"Connection Sensor (Required)",
-    "moving_sensor":"Moving Sensor (Required)",
+    "connection_sensor":"Connection Sensor (Optional)",
+    "moving_sensor":"Moving Sensor (Optional)",
     "min_height":"Min Height (Required)",
     "max_height":"Max Height (Required)",
-    "presets":"Presets"
+    "sit_height":"Sit Height (Optional)",
+    "stand_height":"Stand Height (Optional)",
+    "presets":"Presets",
+    "section_entities":"Entities",
+    "section_height":"Height Configuration",
+    "section_presets":"Preset Buttons"
   },
   "status": {
     "connected": "Connected",

@@ -75,6 +75,7 @@ export class LinakDeskCard extends LitElement {
   private _previousHeight: number | null = null;
   private _motionDirection: 'raising' | 'lowering' | null = null;
   private _motionTimeout: number | null = null;
+  @internalProperty() private _clickAnimating: Set<string> = new Set();
 
   public setConfig(config: LinakDeskCardConfig): void {
     if (!config.desk || !config.height_sensor) {
@@ -383,17 +384,21 @@ export class LinakDeskCard extends LitElement {
     const standTextClass = isRaisingToStand ? 'btn-text-pulse' : '';
     const sitTextClass = isLoweringToSit ? 'btn-text-pulse' : '';
 
+    // Add click animation class if button is being clicked
+    const standClickClass = this._clickAnimating.has('stand') ? 'btn-click' : '';
+    const sitClickClass = this._clickAnimating.has('sit') ? 'btn-click' : '';
+
     return html`
       <div class="btn-stack">
-        <button class="btn ${standBtnClass}"
-                @click=${() => this.handlePreset(standHeight)}>
+        <button class="btn ${standBtnClass} ${standClickClass}"
+                @click=${() => this.handlePreset(standHeight, 'stand')}>
           <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="1,7 5,2 9,7"/>
           </svg>
           <span class="${standTextClass}">${standLabel}</span>
         </button>
-        <button class="btn ${sitBtnClass}"
-                @click=${() => this.handlePreset(sitHeight)}>
+        <button class="btn ${sitBtnClass} ${sitClickClass}"
+                @click=${() => this.handlePreset(sitHeight, 'sit')}>
           <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="1,3 5,8 9,3"/>
           </svg>
@@ -403,9 +408,21 @@ export class LinakDeskCard extends LitElement {
     `;
   }
 
-  handlePreset(target: number): void {
+  handlePreset(target: number, buttonId?: string): void {
     if (target > this.config.max_height) {
       return;
+    }
+
+    // Trigger click animation if buttonId provided
+    if (buttonId) {
+      this._clickAnimating.add(buttonId);
+      this.requestUpdate();
+
+      // Remove animation class after animation completes (600ms duration)
+      setTimeout(() => {
+        this._clickAnimating.delete(buttonId);
+        this.requestUpdate();
+      }, 600);
     }
 
     const travelDist = this.config.max_height - this.config.min_height;
@@ -425,8 +442,6 @@ export class LinakDeskCard extends LitElement {
 
   static get styles(): CSSResult {
     return css`
-      @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap');
-
       :host {
         --sit-color: #3b82f6;
         --sit-dim: rgba(59, 130, 246, 0.14);
@@ -443,7 +458,6 @@ export class LinakDeskCard extends LitElement {
         --grey-text: #9ca3af;
 
         display: block;
-        font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
       }
 
       ha-card {
@@ -556,7 +570,6 @@ export class LinakDeskCard extends LitElement {
         border-radius: 8px;
         padding: 0 11px;
         height: 30px;
-        font-family: 'DM Sans', system-ui, sans-serif;
         font-size: 11px;
         font-weight: 600;
         cursor: pointer;
@@ -838,6 +851,29 @@ export class LinakDeskCard extends LitElement {
           transparent 70%
         );
         animation: shimmer-sweep 1.8s ease-in-out infinite;
+      }
+
+      /* Click effect (one-time glassy wipe) */
+      @keyframes click-sweep {
+        0% {
+          transform: translateX(-100%);
+        }
+        100% {
+          transform: translateX(100%);
+        }
+      }
+
+      .btn-click::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          105deg,
+          transparent 30%,
+          rgba(255, 255, 255, 0.15) 50%,
+          transparent 70%
+        );
+        animation: click-sweep 0.6s ease-out;
       }
 
       /* Text pulse for motion buttons */
