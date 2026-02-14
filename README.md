@@ -49,7 +49,7 @@ resources:
 
 ```yaml
 type: custom:linak-desk-card
-name: Office Desk
+name: Desk
 desk: cover.desk
 height_sensor: sensor.desk_height
 min_height: 25
@@ -60,7 +60,7 @@ max_height: 50
 
 ```yaml
 type: custom:linak-desk-card
-name: Office Desk
+name: Desk
 desk: cover.desk
 height_sensor: sensor.desk_height
 moving_sensor: binary_sensor.desk_moving      # Optional - fallback motion detection

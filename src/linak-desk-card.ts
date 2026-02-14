@@ -1,14 +1,11 @@
 import {
   LitElement,
   html,
-  customElement,
-  property,
-  CSSResult,
-  TemplateResult,
   css,
   PropertyValues,
-  internalProperty,
-} from 'lit-element';
+} from 'lit';
+import { customElement, property, state } from 'lit/decorators.js';
+import type { CSSResult, TemplateResult } from 'lit';
 import { HomeAssistant, LovelaceCardEditor } from 'custom-card-helpers';
 import type { LinakDeskCardConfig, DeskState } from './types';
 import { localize } from './localize/localize';
@@ -71,11 +68,11 @@ export class LinakDeskCard extends LitElement {
   }
 
   @property({ attribute: false }) public hass!: HomeAssistant;
-  @internalProperty() private config!: LinakDeskCardConfig;
+  @state() private config!: LinakDeskCardConfig;
   private _previousHeight: number | null = null;
   private _motionDirection: 'raising' | 'lowering' | null = null;
   private _motionTimeout: number | null = null;
-  @internalProperty() private _clickAnimating: Set<string> = new Set();
+  @state() private _clickAnimating: Set<string> = new Set();
 
   public setConfig(config: LinakDeskCardConfig): void {
     if (!config.desk || !config.height_sensor) {
@@ -246,7 +243,7 @@ export class LinakDeskCard extends LitElement {
       <ha-card>
         <div class="card-inner">
           <div class="col-left">
-            <div class="card-title">${this.config.name || 'Office Desk'}</div>
+            <div class="card-title">${this.config.name || 'Desk'}</div>
             <div class="desk-row">
               <div class="col-desk">
                 ${this.renderDeskSVG()}

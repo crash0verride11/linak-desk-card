@@ -1,12 +1,10 @@
 import {
   LitElement,
   html,
-  customElement,
-  property,
-  TemplateResult,
   css,
-  CSSResult,
-} from 'lit-element';
+} from 'lit';
+import { customElement, property } from 'lit/decorators.js';
+import type { TemplateResult, CSSResult } from 'lit';
 import { HomeAssistant, LovelaceCardEditor } from 'custom-card-helpers';
 import { LinakDeskCardConfig } from './types';
 import { localize } from './localize/localize';
