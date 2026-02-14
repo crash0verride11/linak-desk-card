@@ -133,6 +133,7 @@ export class LinakDeskCard extends LitElement {
         || newHass.states[this.config?.connection_sensor]?.state !== this.hass?.states[this.config?.connection_sensor]?.state
         || newHass.states[this.config?.height_sensor]?.state !== this.hass?.states[this.config?.height_sensor]?.state
         || newHass.states[this.config?.moving_sensor]?.state !== this.hass?.states[this.config?.moving_sensor]?.state
+        || (this.config?.desk_state_entity ? newHass.states[this.config.desk_state_entity]?.state !== this.hass?.states[this.config.desk_state_entity]?.state : false)
       );
     }
     return true;
