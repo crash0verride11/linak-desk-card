@@ -10,12 +10,9 @@ import {
   internalProperty,
 } from 'lit-element';
 import { HomeAssistant, LovelaceCardEditor } from 'custom-card-helpers';
-import type { LinakDeskCardConfig } from './types';
+import type { LinakDeskCardConfig, DeskState } from './types';
 import { localize } from './localize/localize';
 import { HassEntity } from 'home-assistant-js-websocket';
-import tableBottomImg from './table_bottom.png';
-import tableMiddleImg from './table_middle.png';
-import tableTopImg from './table_top.png';
 import './editor';
 
 window.customCards = window.customCards || [];
@@ -44,6 +41,8 @@ export class LinakDeskCard extends LitElement {
       connection_sensor,
       min_height: 62,
       max_height: 127,
+      sit_height: 78,
+      stand_height: 106,
       presets: []
     };
   }
@@ -60,7 +59,11 @@ export class LinakDeskCard extends LitElement {
       throw new Error(localize('common.min_and_max_height_required'));
     }
 
-    this.config = { ...config };
+    this.config = {
+      sit_height: 78,
+      stand_height: 106,
+      ...config
+    };
   }
 
   get desk(): HassEntity {
@@ -86,6 +89,20 @@ export class LinakDeskCard extends LitElement {
     return (this.relativeHeight) / (this.config.max_height - this.config.min_height)
   }
 
+  get deskState(): DeskState {
+    const sitHeight = this.config.sit_height || 78;
+    const standHeight = this.config.stand_height || 106;
+    const midpoint = (sitHeight + standHeight) / 2;
+
+    if (this.moving) {
+      // Determine direction based on whether we're above or below midpoint
+      return this.height >= midpoint ? 'lowering' : 'raising';
+    }
+
+    // Static state - determine sit vs stand based on which target is closer
+    return this.height < midpoint ? 'sit' : 'stand';
+  }
+
   protected shouldUpdate(changedProps: PropertyValues): boolean {
     if (!this.config) {
       return false;
@@ -108,44 +125,36 @@ export class LinakDeskCard extends LitElement {
   }
 
   protected render(): TemplateResult | void {
+    const state = this.deskState;
+    let heightColor = '#60a5fa'; // sit blue
+
+    if (state === 'stand') {
+      heightColor = '#4ade80'; // stand green
+    } else if (state === 'raising' || state === 'lowering') {
+      heightColor = 'var(--grey-text, #9ca3af)'; // motion grey
+    }
+
     return html`
-      <ha-card .header=${this.config.name}>
-        ${this.config.connection_sensor ? html`<div class="connection">
-          ${localize(this.connected ? 'status.connected' : 'status.disconnected')}
-          <div class="indicator ${this.connected ? 'connected' : 'disconnected'}" ></div>
-        </div>` : html``}
-        <div class="preview">
-          <img src="${tableTopImg}" style="transform: translateY(${this.calculateOffset(90)}px);" />
-          <img src="${tableMiddleImg}" style="transform: translateY(${this.calculateOffset(60)}px);" />
-          <img src="${tableBottomImg}" />
-          <div class="height" style="transform: translateY(${this.calculateOffset(90)}px);">
-            ${this.height}
-            <span>cm</span>
+      <ha-card>
+        <div class="card-inner">
+          <div class="col-desk">
+            ${this.renderDeskSVG()}
           </div>
-          <div class="knob">
-            <div class="knob-button" 
-                  @touchstart='${this.goUp}' 
-                  @mousedown='${this.goUp}' 
-                  @touchend='${this.stop}'
-                  @mouseup='${this.stop}'>
-              <ha-icon icon="mdi:chevron-up"></ha-icon>
-            </div>
-            <div class="knob-button" 
-                  @touchstart=${this.goDown} 
-                  @mousedown=${this.goDown} 
-                  @touchend=${this.stop}
-                  @mouseup=${this.stop}>
-              <ha-icon icon="mdi:chevron-down"></ha-icon>
+
+          <div class="col-mid">
+            <div class="card-title">${this.config.name || 'Office Desk'}</div>
+            <div class="height-num" style="color: ${heightColor};">
+              ${this.height}<span class="height-unit">cm</span>
             </div>
           </div>
-          ${this.renderPresets()}
+
+          <div class="col-right">
+            ${this.renderGauge()}
+            ${this.renderButtons()}
+          </div>
         </div>
       </ha-card>
     `;
-  }
-
-  calculateOffset(maxValue: number): number {
-    return Math.round(maxValue * (1.0 - this.alpha))
   }
 
   renderPresets(): TemplateResult {
@@ -156,9 +165,106 @@ export class LinakDeskCard extends LitElement {
           ${presets.map(item => html`
             <paper-button @click="${() => this.handlePreset(item.target)}">
               ${item.label} - ${item.target} cm
-            </paper-button>`)} 
+            </paper-button>`)}
         </div>
       `;
+  }
+
+  renderDeskSVG(): TemplateResult {
+    const state = this.deskState;
+    const stateClass = `state-${state}`;
+
+    // Color scheme based on state
+    let surfaceColor = '#60a5fa'; // sit blue
+    let legColor = '#3b82f6';
+    let surfaceOpacity = 0.85;
+    let legOpacity = 0.35;
+    let baseOpacity = 0.2;
+
+    if (state === 'stand') {
+      surfaceColor = '#4ade80'; // stand green
+      legColor = '#22c55e';
+    } else if (state === 'raising' || state === 'lowering') {
+      surfaceColor = '#9ca3af'; // motion grey
+      legColor = '#6b7280';
+      surfaceOpacity = 0.7;
+      legOpacity = 0.3;
+      baseOpacity = 0.18;
+    }
+
+    return html`
+      <svg class="desk-svg ${stateClass}" width="32" height="72" viewBox="0 0 32 72">
+        <g class="desk-surface">
+          <rect x="0" y="2" width="32" height="4" rx="1.5" fill="${surfaceColor}" opacity="${surfaceOpacity}"/>
+        </g>
+        <g class="desk-legs">
+          <rect x="3" y="6" width="5" height="64" rx="2" fill="${legColor}" opacity="${legOpacity}"/>
+          <rect x="24" y="6" width="5" height="64" rx="2" fill="${legColor}" opacity="${legOpacity}"/>
+          <rect x="1" y="66" width="30" height="4" rx="1.5" fill="${legColor}" opacity="${baseOpacity}"/>
+        </g>
+      </svg>
+    `;
+  }
+
+  renderGauge(): TemplateResult {
+    const state = this.deskState;
+    const gaugeHeight = `${this.alpha * 100}%`;
+
+    let fillColor = 'var(--sit-color, #3b82f6)';
+    if (state === 'stand') {
+      fillColor = 'var(--stand-color, #22c55e)';
+    } else if (state === 'raising' || state === 'lowering') {
+      fillColor = 'var(--grey-fill, #374151)';
+    }
+
+    const animClass = (state === 'raising' || state === 'lowering') ? 'gauge-anim' : '';
+
+    return html`
+      <div class="gauge-track">
+        <div class="gauge-fill ${animClass}" style="height: ${gaugeHeight}; background: ${fillColor};"></div>
+      </div>
+    `;
+  }
+
+  renderButtons(): TemplateResult {
+    const state = this.deskState;
+    const isMoving = state === 'raising' || state === 'lowering';
+
+    // Button class logic
+    const standBtnClass = state === 'stand' ? 'btn-active-stand'
+      : state === 'raising' ? 'btn-motion-raise btn-shimmer'
+      : isMoving ? 'btn-idle-during-motion' : 'btn-ghost';
+
+    const sitBtnClass = state === 'sit' ? 'btn-active-sit'
+      : state === 'lowering' ? 'btn-motion-lower btn-shimmer'
+      : isMoving ? 'btn-idle-during-motion' : 'btn-ghost';
+
+    const standLabel = state === 'raising' ? 'Raising' : 'Stand';
+    const sitLabel = state === 'lowering' ? 'Lowering' : 'Sit';
+
+    const standTextClass = state === 'raising' ? 'btn-text-pulse' : '';
+    const sitTextClass = state === 'lowering' ? 'btn-text-pulse' : '';
+
+    return html`
+      <div class="btn-stack">
+        <button class="btn ${standBtnClass}"
+                ?disabled=${isMoving}
+                @click=${() => this.handlePreset(this.config.stand_height || 106)}>
+          <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="1,7 5,2 9,7"/>
+          </svg>
+          <span class="${standTextClass}">${standLabel}</span>
+        </button>
+        <button class="btn ${sitBtnClass}"
+                ?disabled=${isMoving}
+                @click=${() => this.handlePreset(this.config.sit_height || 78)}>
+          <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="1,3 5,8 9,3"/>
+          </svg>
+          <span class="${sitTextClass}">${sitLabel}</span>
+        </button>
+      </div>
+    `;
   }
 
   handlePreset(target: number): void {
@@ -174,19 +280,7 @@ export class LinakDeskCard extends LitElement {
     }
   }
 
-  private goUp(): void {
-    this.callService('open_cover');
-  }
-
-  private goDown(): void {
-    this.callService('close_cover');
-  }
-
-  private stop(): void {
-    this.callService('stop_cover');
-  }
-
-  private callService(service, options = {}): void {
+  private callService(service: string, options = {}): void {
     this.hass.callService('cover', service, {
       entity_id: this.config.desk,
       ...options
@@ -195,116 +289,408 @@ export class LinakDeskCard extends LitElement {
 
   static get styles(): CSSResult {
     return css`
+      @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap');
+
       :host {
-        display: flex;
-        flex: 1;
-        flex-direction: column;
+        --sit-color: #3b82f6;
+        --sit-dim: rgba(59, 130, 246, 0.14);
+        --sit-text: #93c5fd;
+        --sit-border: rgba(59, 130, 246, 0.22);
+
+        --stand-color: #22c55e;
+        --stand-dim: rgba(34, 197, 94, 0.14);
+        --stand-text: #86efac;
+        --stand-border: rgba(34, 197, 94, 0.22);
+
+        --grey-fill: #374151;
+        --grey-dim: rgba(107, 114, 128, 0.1);
+        --grey-text: #9ca3af;
+
+        display: block;
+        font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
       }
+
       ha-card {
-        flex-direction: column;
-        flex: 1;
-        position: relative;
-        padding: 0px;
-        border-radius: 16px;
-        overflow: hidden;
+        padding: 14px;
+        border-radius: 14px;
+        background: var(--card-background-color, #1c2028);
+        border: 1px solid var(--divider-color, rgba(255, 255, 255, 0.07));
       }
-      .preview {
-        background: linear-gradient(to bottom, var(--primary-color), var(--dark-primary-color));
-        overflow: hidden;
-        position: relative;
-        min-height: 240px;
-      }
-      .preview img {
-        position: absolute;
-        bottom: 0px;
-        transition: all 0.2s linear;
-      }
-      .preview .knob {
-        background: #fff;
-        position: absolute;
+
+      /* ── 3-column layout ──────────────────── */
+      .card-inner {
         display: flex;
-        flex-direction: column;
-        left: 20px;
-        bottom: 12px;
-        border-radius: 35px;
-        width: 50px;
-        overflow: hidden;
-        height: 120px;
-        box-shadow: 0px 0px 36px darkslategrey;
+        flex-direction: row;
+        align-items: stretch;
+        gap: 10px;
       }
-      .preview .knob .knob-button {
+
+      /* ── Desk illustration column ─────────── */
+      .col-desk {
+        flex-shrink: 0;
+        width: 34px;
         display: flex;
+        align-items: flex-end;
         justify-content: center;
-        align-items: center;
+      }
+
+      .desk-svg {
+        overflow: visible;
+      }
+
+      .desk-legs {
+        transform-origin: 50% 100%;
+      }
+
+      /* ── Title + height column ───────────── */
+      .col-mid {
         flex: 1;
-      }
-      .preview .knob .knob-button ha-icon {
-        color: #030303;
-        cursor: pointer;
-      }
-      .preview .knob .knob-button:active {
-        background: rgba(0, 0, 0, 0.06);
-      }
-      .height {
-        position: absolute;
-        left: 30px;
-        top: 60px;
-        font-size: 32px;
-        font-weight: bold;
-        transition: all 0.2s linear;
-      }
-      .height span {
-        opacity: 0.6;
-      }
-      .presets {
-        position: absolute;
         display: flex;
         flex-direction: column;
-        justify-content: space-around;
-        width: 36%;
-        min-width: 120px;
-        height: 80%;
-        right: 5%;
-        top: 10%;
+        justify-content: space-between;
+        min-width: 0;
       }
 
-      .presets > paper-button {
-        height: 40px;
-        margin-bottom: 5px;
-        background-color: white;
-        border-radius: 20px;
-        box-shadow: darkslategrey 0px 0px 36px;
+      .card-title {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--primary-text-color, #e2e6f0);
+      }
+
+      .height-num {
+        font-size: 34px;
+        font-weight: 300;
+        letter-spacing: -1.5px;
+        line-height: 1;
+        margin-top: auto;
+      }
+
+      .height-unit {
+        font-size: 13px;
+        font-weight: 400;
+        opacity: 0.45;
+        margin-left: 1px;
+      }
+
+      /* ── Gauge + buttons column ──────────── */
+      .col-right {
+        flex-shrink: 0;
         display: flex;
-        justify-content: center;
-        align-items: center;
-        cursor: pointer;
-        color: rgb(3, 3, 3);
-        font-size: 18px;
-        font-weight: 500;
+        flex-direction: row;
+        align-items: stretch;
+        gap: 8px;
       }
 
-      .connection {
+      /* ── Gauge track ─────────────────────── */
+      .gauge-track {
+        width: 4px;
+        background: var(--divider-color, rgba(255, 255, 255, 0.1));
+        border-radius: 4px;
+        position: relative;
+        overflow: hidden;
+        align-self: stretch;
+      }
+
+      .gauge-fill {
         position: absolute;
-        display: flex;
-        align-items: center;
-        right: 12px;
-        top: 10px;
-        color: var(--text-primary-color);
-        z-index: 1;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        border-radius: 4px;
+        transition: height 0.3s ease, background 0.3s ease;
       }
 
-      .connection .indicator {
-        margin-left: 10px;
-        height: 10px;
+      /* ── Button stack ────────────────────── */
+      .btn-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        justify-content: space-between;
+      }
+
+      .btn {
+        border: none;
+        border-radius: 8px;
+        padding: 0 11px;
+        height: 30px;
+        font-family: 'DM Sans', system-ui, sans-serif;
+        font-size: 11px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        white-space: nowrap;
+        letter-spacing: 0.02em;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.2s ease;
+      }
+
+      .btn svg {
         width: 10px;
-        border-radius: 50%;
-      } 
-
-      .indicator.connected {
-        background-color: green;
+        height: 10px;
+        flex-shrink: 0;
       }
-      .indicator.disconnected {
-        background-color: red;
+
+      .btn-active-sit {
+        background: var(--sit-dim);
+        color: var(--sit-text);
+        border: 1px solid var(--sit-border);
+      }
+
+      .btn-active-stand {
+        background: var(--stand-dim);
+        color: var(--stand-text);
+        border: 1px solid var(--stand-border);
+      }
+
+      .btn-ghost {
+        background: var(--divider-color, rgba(255, 255, 255, 0.05));
+        color: var(--secondary-text-color, #9ca3af);
+        border: 1px solid transparent;
+      }
+
+      .btn-ghost:hover {
+        background: var(--divider-color, rgba(255, 255, 255, 0.1));
+      }
+
+      .btn-motion-raise,
+      .btn-motion-lower {
+        background: var(--grey-dim);
+        color: var(--grey-text);
+        border: 1px solid rgba(107, 114, 128, 0.18);
+        cursor: default;
+      }
+
+      .btn-idle-during-motion {
+        background: var(--divider-color, rgba(255, 255, 255, 0.05));
+        color: var(--secondary-text-color, #5c6478);
+        border: 1px solid transparent;
+        opacity: 0.3;
+        cursor: not-allowed;
+      }
+
+      .btn:disabled {
+        pointer-events: none;
+      }
+
+      /* ══════════════════════════════════════
+         ANIMATIONS
+      ══════════════════════════════════════ */
+
+      /* Static states */
+      .state-sit .desk-surface {
+        transform: translateY(40px);
+        transition: transform 0.3s ease;
+      }
+
+      .state-sit .desk-legs {
+        transform: scaleY(0.35);
+        transition: transform 0.3s ease;
+      }
+
+      .state-stand .desk-surface {
+        transform: translateY(0px);
+        transition: transform 0.3s ease;
+      }
+
+      .state-stand .desk-legs {
+        transform: scaleY(1);
+        transition: transform 0.3s ease;
+      }
+
+      /* Raising animation */
+      @keyframes surface-raise {
+        0% {
+          transform: translateY(40px);
+          animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        65% {
+          transform: translateY(0px);
+          animation-timing-function: steps(1, end);
+        }
+        82% {
+          transform: translateY(0px);
+        }
+        82.01% {
+          transform: translateY(40px);
+          animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        100% {
+          transform: translateY(40px);
+        }
+      }
+
+      @keyframes legs-raise {
+        0% {
+          transform: scaleY(0.35);
+          animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        65% {
+          transform: scaleY(1);
+          animation-timing-function: steps(1, end);
+        }
+        82% {
+          transform: scaleY(1);
+        }
+        82.01% {
+          transform: scaleY(0.35);
+          animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        100% {
+          transform: scaleY(0.35);
+        }
+      }
+
+      @keyframes gauge-raise {
+        0% {
+          height: 27%;
+          animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        65% {
+          height: 78%;
+          animation-timing-function: steps(1, end);
+        }
+        82% {
+          height: 78%;
+        }
+        82.01% {
+          height: 27%;
+          animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        100% {
+          height: 27%;
+        }
+      }
+
+      /* Lowering animation */
+      @keyframes surface-lower {
+        0% {
+          transform: translateY(0px);
+          animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        65% {
+          transform: translateY(40px);
+          animation-timing-function: steps(1, end);
+        }
+        82% {
+          transform: translateY(40px);
+        }
+        82.01% {
+          transform: translateY(0px);
+          animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        100% {
+          transform: translateY(0px);
+        }
+      }
+
+      @keyframes legs-lower {
+        0% {
+          transform: scaleY(1);
+          animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        65% {
+          transform: scaleY(0.35);
+          animation-timing-function: steps(1, end);
+        }
+        82% {
+          transform: scaleY(0.35);
+        }
+        82.01% {
+          transform: scaleY(1);
+          animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        100% {
+          transform: scaleY(1);
+        }
+      }
+
+      @keyframes gauge-lower {
+        0% {
+          height: 78%;
+          animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        65% {
+          height: 27%;
+          animation-timing-function: steps(1, end);
+        }
+        82% {
+          height: 27%;
+        }
+        82.01% {
+          height: 78%;
+          animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        100% {
+          height: 78%;
+        }
+      }
+
+      .state-raising .desk-surface {
+        animation: surface-raise 2.2s infinite;
+      }
+
+      .state-raising .desk-legs {
+        animation: legs-raise 2.2s infinite;
+      }
+
+      .state-raising .gauge-anim {
+        animation: gauge-raise 2.2s infinite;
+      }
+
+      .state-lowering .desk-surface {
+        animation: surface-lower 2.2s infinite;
+      }
+
+      .state-lowering .desk-legs {
+        animation: legs-lower 2.2s infinite;
+      }
+
+      .state-lowering .gauge-anim {
+        animation: gauge-lower 2.2s infinite;
+      }
+
+      /* Shimmer effect for motion buttons */
+      @keyframes shimmer-sweep {
+        0% {
+          transform: translateX(-100%);
+        }
+        60% {
+          transform: translateX(100%);
+        }
+        100% {
+          transform: translateX(100%);
+        }
+      }
+
+      .btn-shimmer::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          105deg,
+          transparent 30%,
+          rgba(255, 255, 255, 0.1) 50%,
+          transparent 70%
+        );
+        animation: shimmer-sweep 1.8s ease-in-out infinite;
+      }
+
+      /* Text pulse for motion buttons */
+      @keyframes text-pulse {
+        0%, 100% {
+          opacity: 0.6;
+        }
+        50% {
+          opacity: 1;
+        }
+      }
+
+      .btn-text-pulse {
+        animation: text-pulse 1.4s ease-in-out infinite;
       }
     `;
   }
