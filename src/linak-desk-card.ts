@@ -71,11 +71,13 @@ export class LinakDeskCard extends LitElement {
   }
 
   get height(): number {
-    return this.relativeHeight + this.config.min_height;
+    // Height sensor reports absolute height in cm
+    return parseFloat(this.hass.states[this.config.height_sensor]?.state) || 0;
   }
 
   get relativeHeight(): number {
-    return parseInt(this.hass.states[this.config.height_sensor]?.state, 10) || 0;
+    // Calculate relative height (offset from minimum)
+    return this.height - this.config.min_height;
   }
 
   get connected(): boolean {
@@ -85,8 +87,10 @@ export class LinakDeskCard extends LitElement {
   get moving(): boolean {
     return this.hass.states[this.config.moving_sensor]?.state === 'on';
   }
+
   get alpha(): number {
-    return (this.relativeHeight) / (this.config.max_height - this.config.min_height)
+    // Percentage of desk range (0 to 1)
+    return this.relativeHeight / (this.config.max_height - this.config.min_height);
   }
 
   get deskState(): DeskState {
