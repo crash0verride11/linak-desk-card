@@ -170,6 +170,16 @@ export class LinakDeskCard extends LitElement {
     return this.height < midpoint ? 'sit' : 'stand';
   }
 
+  get isInClearSitZone(): boolean {
+    const sitHeight = this.config.sit_height ?? this.sitHeightDefault;
+    return this.height <= sitHeight + 2;
+  }
+
+  get isInClearStandZone(): boolean {
+    const standHeight = this.config.stand_height ?? this.standHeightDefault;
+    return this.height >= standHeight - 2;
+  }
+
   protected shouldUpdate(changedProps: PropertyValues): boolean {
     if (!this.config) {
       return false;
@@ -334,14 +344,14 @@ export class LinakDeskCard extends LitElement {
     const isLoweringToSit = state === 'lowering' && this.height > (sitHeight + 2);
     const isMoving = state === 'raising' || state === 'lowering';
 
-    // Button class logic
-    const standBtnClass = state === 'stand' ? 'btn-active-stand'
+    // Button class logic - use filled style only when in clear zone
+    const standBtnClass = (state === 'stand' && this.isInClearStandZone) ? 'btn-active-stand'
       : isRaisingToStand ? 'btn-motion-raise btn-shimmer'
-      : isMoving ? 'btn-idle-during-motion' : 'btn-ghost';
+      : isMoving ? 'btn-idle-during-motion' : 'btn-outline-stand';
 
-    const sitBtnClass = state === 'sit' ? 'btn-active-sit'
+    const sitBtnClass = (state === 'sit' && this.isInClearSitZone) ? 'btn-active-sit'
       : isLoweringToSit ? 'btn-motion-lower btn-shimmer'
-      : isMoving ? 'btn-idle-during-motion' : 'btn-ghost';
+      : isMoving ? 'btn-idle-during-motion' : 'btn-outline-sit';
 
     const standLabel = isRaisingToStand ? 'Raising' : 'Stand';
     const sitLabel = isLoweringToSit ? 'Lowering' : 'Sit';
@@ -553,6 +563,18 @@ export class LinakDeskCard extends LitElement {
         background: var(--stand-color, #22c55e);
         color: white;
         border: 1px solid var(--stand-color, #22c55e);
+      }
+
+      .btn-outline-sit {
+        background: var(--sit-dim, rgba(59, 130, 246, 0.14));
+        color: var(--sit-text, #93c5fd);
+        border: 1px solid var(--sit-border, rgba(59, 130, 246, 0.22));
+      }
+
+      .btn-outline-stand {
+        background: var(--stand-dim, rgba(34, 197, 94, 0.14));
+        color: var(--stand-text, #86efac);
+        border: 1px solid var(--stand-border, rgba(34, 197, 94, 0.22));
       }
 
       .btn-ghost {
