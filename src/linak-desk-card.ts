@@ -94,6 +94,16 @@ export class LinakDeskCard extends LitElement {
   }
 
   get deskState(): DeskState {
+    // Use desk_state_entity if configured
+    if (this.config.desk_state_entity) {
+      const entityState = this.hass.states[this.config.desk_state_entity]?.state;
+      if (entityState === 'raising' || entityState === 'lowering' ||
+          entityState === 'sit' || entityState === 'stand') {
+        return entityState as DeskState;
+      }
+    }
+
+    // Fallback to midpoint logic for backward compatibility
     const sitHeight = this.config.sit_height || 78;
     const standHeight = this.config.stand_height || 106;
     const midpoint = (sitHeight + standHeight) / 2;
@@ -138,6 +148,9 @@ export class LinakDeskCard extends LitElement {
       heightColor = 'var(--grey-text, #9ca3af)'; // motion grey
     }
 
+    // Round height to 1 decimal place
+    const displayHeight = Math.round(this.height * 10) / 10;
+
     return html`
       <ha-card>
         <div class="card-inner">
@@ -148,7 +161,7 @@ export class LinakDeskCard extends LitElement {
           <div class="col-mid">
             <div class="card-title">${this.config.name || 'Office Desk'}</div>
             <div class="height-num" style="color: ${heightColor};">
-              ${this.height}<span class="height-unit">cm</span>
+              ${displayHeight}<span class="height-unit">cm</span>
             </div>
           </div>
 
@@ -232,28 +245,34 @@ export class LinakDeskCard extends LitElement {
 
   renderButtons(): TemplateResult {
     const state = this.deskState;
+    const sitHeight = this.config.sit_height || 78;
+    const standHeight = this.config.stand_height || 106;
+
+    // Proximity checks: show motion label only when close to target
+    const isRaisingToStand = state === 'raising' && this.height < (standHeight - 2);
+    const isLoweringToSit = state === 'lowering' && this.height > (sitHeight + 2);
     const isMoving = state === 'raising' || state === 'lowering';
 
     // Button class logic
     const standBtnClass = state === 'stand' ? 'btn-active-stand'
-      : state === 'raising' ? 'btn-motion-raise btn-shimmer'
+      : isRaisingToStand ? 'btn-motion-raise btn-shimmer'
       : isMoving ? 'btn-idle-during-motion' : 'btn-ghost';
 
     const sitBtnClass = state === 'sit' ? 'btn-active-sit'
-      : state === 'lowering' ? 'btn-motion-lower btn-shimmer'
+      : isLoweringToSit ? 'btn-motion-lower btn-shimmer'
       : isMoving ? 'btn-idle-during-motion' : 'btn-ghost';
 
-    const standLabel = state === 'raising' ? 'Raising' : 'Stand';
-    const sitLabel = state === 'lowering' ? 'Lowering' : 'Sit';
+    const standLabel = isRaisingToStand ? 'Raising' : 'Stand';
+    const sitLabel = isLoweringToSit ? 'Lowering' : 'Sit';
 
-    const standTextClass = state === 'raising' ? 'btn-text-pulse' : '';
-    const sitTextClass = state === 'lowering' ? 'btn-text-pulse' : '';
+    const standTextClass = isRaisingToStand ? 'btn-text-pulse' : '';
+    const sitTextClass = isLoweringToSit ? 'btn-text-pulse' : '';
 
     return html`
       <div class="btn-stack">
         <button class="btn ${standBtnClass}"
                 ?disabled=${isMoving}
-                @click=${() => this.handlePreset(this.config.stand_height || 106)}>
+                @click=${() => this.handlePreset(standHeight)}>
           <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="1,7 5,2 9,7"/>
           </svg>
@@ -261,7 +280,7 @@ export class LinakDeskCard extends LitElement {
         </button>
         <button class="btn ${sitBtnClass}"
                 ?disabled=${isMoving}
-                @click=${() => this.handlePreset(this.config.sit_height || 78)}>
+                @click=${() => this.handlePreset(sitHeight)}>
           <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="1,3 5,8 9,3"/>
           </svg>
