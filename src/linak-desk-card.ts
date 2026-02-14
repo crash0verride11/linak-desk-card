@@ -178,14 +178,15 @@ export class LinakDeskCard extends LitElement {
     return html`
       <ha-card>
         <div class="card-inner">
-          <div class="col-desk">
-            ${this.renderDeskSVG()}
-          </div>
-
-          <div class="col-mid">
+          <div class="col-left">
             <div class="card-title">${this.config.name || 'Office Desk'}</div>
-            <div class="height-num" style="color: ${heightColor};">
-              ${displayHeight}<span class="height-unit">${this.heightUnit}</span>
+            <div class="desk-row">
+              <div class="col-desk">
+                ${this.renderDeskSVG()}
+              </div>
+              <div class="height-num" style="color: ${heightColor};">
+                ${displayHeight}<span class="height-unit">${this.heightUnit}</span>
+              </div>
             </div>
           </div>
 
@@ -234,14 +235,14 @@ export class LinakDeskCard extends LitElement {
     }
 
     return html`
-      <svg class="desk-svg ${stateClass}" width="32" height="72" viewBox="0 0 32 72">
+      <svg class="desk-svg ${stateClass}" width="32" height="48" viewBox="0 0 32 48">
         <g class="desk-surface">
-          <rect x="0" y="2" width="32" height="4" rx="1.5" fill="${surfaceColor}" opacity="${surfaceOpacity}"/>
+          <rect x="0" y="2" width="32" height="3" rx="1.5" fill="${surfaceColor}" opacity="${surfaceOpacity}"/>
         </g>
         <g class="desk-legs">
-          <rect x="3" y="6" width="5" height="64" rx="2" fill="${legColor}" opacity="${legOpacity}"/>
-          <rect x="24" y="6" width="5" height="64" rx="2" fill="${legColor}" opacity="${legOpacity}"/>
-          <rect x="1" y="66" width="30" height="4" rx="1.5" fill="${legColor}" opacity="${baseOpacity}"/>
+          <rect x="3" y="5" width="5" height="38" rx="2" fill="${legColor}" opacity="${legOpacity}"/>
+          <rect x="24" y="5" width="5" height="38" rx="2" fill="${legColor}" opacity="${legOpacity}"/>
+          <rect x="1" y="44" width="30" height="4" rx="1.5" fill="${legColor}" opacity="${baseOpacity}"/>
         </g>
       </svg>
     `;
@@ -366,18 +367,41 @@ export class LinakDeskCard extends LitElement {
         border: 1px solid var(--divider-color, rgba(255, 255, 255, 0.07));
       }
 
-      /* ── 3-column layout ──────────────────── */
+      /* ── 2-column layout ──────────────────── */
       .card-inner {
         display: flex;
         flex-direction: row;
         align-items: stretch;
-        gap: 10px;
+        gap: 12px;
       }
 
-      /* ── Desk illustration column ─────────── */
+      /* ── Left column: title top, desk+number bottom ─────────── */
+      .col-left {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-width: 0;
+      }
+
+      .card-title {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--primary-text-color, #e2e6f0);
+        line-height: 1;
+      }
+
+      /* Desk icon + number side by side at bottom */
+      .desk-row {
+        display: flex;
+        flex-direction: row;
+        align-items: flex-end;
+        gap: 8px;
+      }
+
       .col-desk {
         flex-shrink: 0;
-        width: 34px;
+        width: 32px;
         display: flex;
         align-items: flex-end;
         justify-content: center;
@@ -391,27 +415,11 @@ export class LinakDeskCard extends LitElement {
         transform-origin: 50% 100%;
       }
 
-      /* ── Title + height column ───────────── */
-      .col-mid {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        min-width: 0;
-      }
-
-      .card-title {
-        font-size: 12px;
-        font-weight: 600;
-        color: var(--primary-text-color, #e2e6f0);
-      }
-
       .height-num {
         font-size: 34px;
         font-weight: 300;
         letter-spacing: -1.5px;
         line-height: 1;
-        margin-top: auto;
       }
 
       .height-unit {
@@ -531,12 +539,12 @@ export class LinakDeskCard extends LitElement {
 
       /* Static states */
       .state-sit .desk-surface {
-        transform: translateY(40px);
+        transform: translateY(27px);
         transition: transform 0.3s ease;
       }
 
       .state-sit .desk-legs {
-        transform: scaleY(0.35);
+        transform: scaleY(0.3);
         transition: transform 0.3s ease;
       }
 
@@ -553,43 +561,43 @@ export class LinakDeskCard extends LitElement {
       /* Raising animation */
       @keyframes surface-raise {
         0% {
-          transform: translateY(40px);
-          animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+          transform: translateY(27px);
+          animation-timing-function: cubic-bezier(0.42, 0, 0.22, 1);
         }
-        65% {
+        62% {
           transform: translateY(0px);
           animation-timing-function: steps(1, end);
         }
-        82% {
+        80% {
           transform: translateY(0px);
         }
-        82.01% {
-          transform: translateY(40px);
-          animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        80.01% {
+          transform: translateY(27px);
+          animation-timing-function: cubic-bezier(0.42, 0, 0.22, 1);
         }
         100% {
-          transform: translateY(40px);
+          transform: translateY(27px);
         }
       }
 
       @keyframes legs-raise {
         0% {
-          transform: scaleY(0.35);
-          animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+          transform: scaleY(0.3);
+          animation-timing-function: cubic-bezier(0.42, 0, 0.22, 1);
         }
-        65% {
+        62% {
           transform: scaleY(1);
           animation-timing-function: steps(1, end);
         }
-        82% {
+        80% {
           transform: scaleY(1);
         }
-        82.01% {
-          transform: scaleY(0.35);
-          animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        80.01% {
+          transform: scaleY(0.3);
+          animation-timing-function: cubic-bezier(0.42, 0, 0.22, 1);
         }
         100% {
-          transform: scaleY(0.35);
+          transform: scaleY(0.3);
         }
       }
 
@@ -618,18 +626,18 @@ export class LinakDeskCard extends LitElement {
       @keyframes surface-lower {
         0% {
           transform: translateY(0px);
-          animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+          animation-timing-function: cubic-bezier(0.42, 0, 0.22, 1);
         }
-        65% {
-          transform: translateY(40px);
+        62% {
+          transform: translateY(27px);
           animation-timing-function: steps(1, end);
         }
-        82% {
-          transform: translateY(40px);
+        80% {
+          transform: translateY(27px);
         }
-        82.01% {
+        80.01% {
           transform: translateY(0px);
-          animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+          animation-timing-function: cubic-bezier(0.42, 0, 0.22, 1);
         }
         100% {
           transform: translateY(0px);
@@ -639,18 +647,18 @@ export class LinakDeskCard extends LitElement {
       @keyframes legs-lower {
         0% {
           transform: scaleY(1);
-          animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+          animation-timing-function: cubic-bezier(0.42, 0, 0.22, 1);
         }
-        65% {
-          transform: scaleY(0.35);
+        62% {
+          transform: scaleY(0.3);
           animation-timing-function: steps(1, end);
         }
-        82% {
-          transform: scaleY(0.35);
+        80% {
+          transform: scaleY(0.3);
         }
-        82.01% {
+        80.01% {
           transform: scaleY(1);
-          animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+          animation-timing-function: cubic-bezier(0.42, 0, 0.22, 1);
         }
         100% {
           transform: scaleY(1);
