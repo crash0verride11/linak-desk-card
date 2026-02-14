@@ -75,6 +75,11 @@ export class LinakDeskCard extends LitElement {
     return parseFloat(this.hass.states[this.config.height_sensor]?.state) || 0;
   }
 
+  get heightUnit(): string {
+    // Get unit from height sensor, default to 'cm' if not available
+    return this.hass.states[this.config.height_sensor]?.attributes?.unit_of_measurement || 'cm';
+  }
+
   get relativeHeight(): number {
     // Calculate relative height (offset from minimum)
     return this.height - this.config.min_height;
@@ -180,7 +185,7 @@ export class LinakDeskCard extends LitElement {
           <div class="col-mid">
             <div class="card-title">${this.config.name || 'Office Desk'}</div>
             <div class="height-num" style="color: ${heightColor};">
-              ${displayHeight}<span class="height-unit">cm</span>
+              ${displayHeight}<span class="height-unit">${this.heightUnit}</span>
             </div>
           </div>
 
@@ -294,7 +299,6 @@ export class LinakDeskCard extends LitElement {
     return html`
       <div class="btn-stack">
         <button class="btn ${standBtnClass}"
-                ?disabled=${isMoving}
                 @click=${() => this.handlePreset(standHeight)}>
           <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="1,7 5,2 9,7"/>
@@ -302,7 +306,6 @@ export class LinakDeskCard extends LitElement {
           <span class="${standTextClass}">${standLabel}</span>
         </button>
         <button class="btn ${sitBtnClass}"
-                ?disabled=${isMoving}
                 @click=${() => this.handlePreset(sitHeight)}>
           <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="1,3 5,8 9,3"/>
