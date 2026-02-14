@@ -209,8 +209,8 @@ export class LinakDeskCard extends LitElement {
       const oldHeight = oldHass ? parseFloat(oldHass.states[this.config.height_sensor]?.state) || 0 : null;
       const currentHeight = this.height;
 
-      // Detect motion based on height change (threshold: 0.2 units to filter noise)
-      if (oldHeight !== null && Math.abs(currentHeight - oldHeight) > 0.2) {
+      // Detect motion based on height change (threshold: 0.1 units to filter noise)
+      if (oldHeight !== null && Math.abs(currentHeight - oldHeight) > 0.1) {
         const delta = currentHeight - oldHeight;
         this._motionDirection = delta > 0 ? 'raising' : 'lowering';
 
@@ -338,20 +338,44 @@ export class LinakDeskCard extends LitElement {
     const state = this.deskState;
     const sitHeight = this.config.sit_height ?? this.sitHeightDefault;
     const standHeight = this.config.stand_height ?? this.standHeightDefault;
+    const midpoint = (sitHeight + standHeight) / 2;
 
     // Proximity checks: show motion label only when close to target
     const isRaisingToStand = state === 'raising' && this.height < (standHeight - 2);
     const isLoweringToSit = state === 'lowering' && this.height > (sitHeight + 2);
     const isMoving = state === 'raising' || state === 'lowering';
 
-    // Button class logic - use filled style only when in clear zone
-    const standBtnClass = (state === 'stand' && this.isInClearStandZone) ? 'btn-active-stand'
-      : isRaisingToStand ? 'btn-motion-raise btn-shimmer'
-      : isMoving ? 'btn-idle-during-motion' : 'btn-outline-stand';
+    // Determine which side of midpoint we're on (when not in motion)
+    const isAboveMidpoint = this.height >= midpoint;
+    const isBelowMidpoint = this.height < midpoint;
 
-    const sitBtnClass = (state === 'sit' && this.isInClearSitZone) ? 'btn-active-sit'
-      : isLoweringToSit ? 'btn-motion-lower btn-shimmer'
-      : isMoving ? 'btn-idle-during-motion' : 'btn-outline-sit';
+    // Stand button class logic
+    let standBtnClass: string;
+    if (isRaisingToStand) {
+      standBtnClass = 'btn-motion-raise btn-shimmer';
+    } else if (isMoving) {
+      standBtnClass = 'btn-idle-during-motion';
+    } else if (this.isInClearStandZone && state === 'stand') {
+      standBtnClass = 'btn-active-stand'; // Green fill, white text
+    } else if (!this.isInClearSitZone && !this.isInClearStandZone && isAboveMidpoint) {
+      standBtnClass = 'btn-outline-stand'; // Green outline, green text
+    } else {
+      standBtnClass = 'btn-outline-grey'; // Grey outline, grey text
+    }
+
+    // Sit button class logic
+    let sitBtnClass: string;
+    if (isLoweringToSit) {
+      sitBtnClass = 'btn-motion-lower btn-shimmer';
+    } else if (isMoving) {
+      sitBtnClass = 'btn-idle-during-motion';
+    } else if (this.isInClearSitZone && state === 'sit') {
+      sitBtnClass = 'btn-active-sit'; // Blue fill, white text
+    } else if (!this.isInClearSitZone && !this.isInClearStandZone && isBelowMidpoint) {
+      sitBtnClass = 'btn-outline-sit'; // Blue outline, blue text
+    } else {
+      sitBtnClass = 'btn-outline-grey'; // Grey outline, grey text
+    }
 
     const standLabel = isRaisingToStand ? 'Raising' : 'Stand';
     const sitLabel = isLoweringToSit ? 'Lowering' : 'Sit';
@@ -575,6 +599,12 @@ export class LinakDeskCard extends LitElement {
         background: var(--stand-dim, rgba(34, 197, 94, 0.14));
         color: var(--stand-text, #86efac);
         border: 1px solid var(--stand-border, rgba(34, 197, 94, 0.22));
+      }
+
+      .btn-outline-grey {
+        background: var(--grey-dim, rgba(107, 114, 128, 0.1));
+        color: var(--grey-text, #9ca3af);
+        border: 1px solid rgba(107, 114, 128, 0.18);
       }
 
       .btn-ghost {
