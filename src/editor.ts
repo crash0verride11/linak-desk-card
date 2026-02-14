@@ -87,7 +87,7 @@ export class LinakDeskCardEditor extends LitElement implements LovelaceCardEdito
             @value-changed=${this._valueChanged}
             .configValue=${'connection_sensor'}
           >
-            <paper-listbox slot="dropdown-content" .selected=${binarySensors.indexOf(this._config.connection_sensor)}>
+            <paper-listbox slot="dropdown-content" .selected=${binarySensors.indexOf(this._config.connection_sensor ?? '')}>
               ${binarySensors.map(entity => {
                 return html`
                   <paper-item>${entity}</paper-item>
@@ -102,7 +102,7 @@ export class LinakDeskCardEditor extends LitElement implements LovelaceCardEdito
             @value-changed=${this._valueChanged}
             .configValue=${'moving_sensor'}
           >
-            <paper-listbox slot="dropdown-content" .selected=${binarySensors.indexOf(this._config.moving_sensor)}>
+            <paper-listbox slot="dropdown-content" .selected=${binarySensors.indexOf(this._config.moving_sensor ?? '')}>
               ${binarySensors.map(entity => {
                 return html`
                   <paper-item>${entity}</paper-item>

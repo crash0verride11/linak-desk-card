@@ -17,10 +17,9 @@ declare global {
 export interface LinakDeskCardConfig extends LovelaceCardConfig {
   name?: string;
   desk: string;
-  moving_sensor: string;
-  connection_sensor: string;
+  moving_sensor?: string;
+  connection_sensor?: string;
   height_sensor: string;
-  desk_state_entity?: string;
   max_height: number;
   min_height: number;
   sit_height?: number;

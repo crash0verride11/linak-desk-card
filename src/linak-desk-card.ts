@@ -72,6 +72,9 @@ export class LinakDeskCard extends LitElement {
 
   @property({ attribute: false }) public hass!: HomeAssistant;
   @internalProperty() private config!: LinakDeskCardConfig;
+  private _previousHeight: number | null = null;
+  private _motionDirection: 'raising' | 'lowering' | null = null;
+  private _motionTimeout: number | null = null;
 
   public setConfig(config: LinakDeskCardConfig): void {
     if (!config.desk || !config.height_sensor) {
@@ -113,10 +116,16 @@ export class LinakDeskCard extends LitElement {
   }
 
   get connected(): boolean {
+    if (!this.config.connection_sensor) {
+      return true; // Assume connected if sensor not configured
+    }
     return this.hass.states[this.config.connection_sensor]?.state === 'on';
   }
 
   get moving(): boolean {
+    if (!this.config.moving_sensor) {
+      return false; // Motion is detected from height changes
+    }
     return this.hass.states[this.config.moving_sensor]?.state === 'on';
   }
 
@@ -129,41 +138,35 @@ export class LinakDeskCard extends LitElement {
     const sitHeight = this.config.sit_height ?? this.sitHeightDefault;
     const standHeight = this.config.stand_height ?? this.standHeightDefault;
 
-    // Use desk_state_entity if configured
-    if (this.config.desk_state_entity) {
-      const entityState = this.hass.states[this.config.desk_state_entity]?.state?.toLowerCase();
-      console.log('[LinakDeskCard] desk_state_entity:', this.config.desk_state_entity, 'state:', entityState);
-
-      if (entityState === 'raising' || entityState === 'lowering' ||
-          entityState === 'sit' || entityState === 'stand') {
-
-        // Smart override: if automation says "raising" but we've reached stand height, we're standing
-        if (entityState === 'raising' && this.height >= standHeight - 0.5) {
-          console.log('[LinakDeskCard] Override: reached stand height, changing state from raising to stand');
-          return 'stand';
-        }
-
-        // Smart override: if automation says "lowering" but we've reached sit height, we're sitting
-        if (entityState === 'lowering' && this.height <= sitHeight + 0.5) {
-          console.log('[LinakDeskCard] Override: reached sit height, changing state from lowering to sit');
-          return 'sit';
-        }
-
-        console.log('[LinakDeskCard] Using entity state:', entityState);
-        return entityState as DeskState;
+    // First priority: use detected motion from height changes
+    if (this._motionDirection) {
+      // Smart override: if we've reached target height, switch to static state
+      if (this._motionDirection === 'raising' && this.height >= standHeight - 0.5) {
+        return 'stand';
       }
-      console.log('[LinakDeskCard] Entity state did not match expected values, falling back to midpoint logic');
+      if (this._motionDirection === 'lowering' && this.height <= sitHeight + 0.5) {
+        return 'sit';
+      }
+      return this._motionDirection;
     }
 
-    // Fallback to midpoint logic for backward compatibility
-    const midpoint = (sitHeight + standHeight) / 2;
-
-    if (this.moving) {
+    // Second priority: fallback to moving_sensor if configured
+    if (this.config.moving_sensor && this.moving) {
+      const midpoint = (sitHeight + standHeight) / 2;
       // Determine direction based on whether we're above or below midpoint
       return this.height >= midpoint ? 'lowering' : 'raising';
     }
 
-    // Static state - determine sit vs stand based on which target is closer
+    // Static state - use proximity zones
+    if (this.height >= standHeight - 2) {
+      return 'stand';
+    }
+    if (this.height <= sitHeight + 2) {
+      return 'sit';
+    }
+
+    // Fallback for positions between sit and stand zones (use midpoint)
+    const midpoint = (sitHeight + standHeight) / 2;
     return this.height < midpoint ? 'sit' : 'stand';
   }
 
@@ -180,13 +183,39 @@ export class LinakDeskCard extends LitElement {
     if (newHass) {
       return (
         newHass.states[this.config?.desk] !== this.hass?.states[this.config?.desk]
-        || newHass.states[this.config?.connection_sensor]?.state !== this.hass?.states[this.config?.connection_sensor]?.state
+        || (this.config?.connection_sensor ? newHass.states[this.config.connection_sensor]?.state !== this.hass?.states[this.config.connection_sensor]?.state : false)
         || newHass.states[this.config?.height_sensor]?.state !== this.hass?.states[this.config?.height_sensor]?.state
-        || newHass.states[this.config?.moving_sensor]?.state !== this.hass?.states[this.config?.moving_sensor]?.state
-        || (this.config?.desk_state_entity ? newHass.states[this.config.desk_state_entity]?.state !== this.hass?.states[this.config.desk_state_entity]?.state : false)
+        || (this.config?.moving_sensor ? newHass.states[this.config.moving_sensor]?.state !== this.hass?.states[this.config.moving_sensor]?.state : false)
       );
     }
     return true;
+  }
+
+  protected updated(changedProps: PropertyValues): void {
+    super.updated(changedProps);
+
+    if (changedProps.has('hass') && this.config?.height_sensor) {
+      const oldHass = changedProps.get('hass') as HomeAssistant | undefined;
+      const oldHeight = oldHass ? parseFloat(oldHass.states[this.config.height_sensor]?.state) || 0 : null;
+      const currentHeight = this.height;
+
+      // Detect motion based on height change (threshold: 0.2 units to filter noise)
+      if (oldHeight !== null && Math.abs(currentHeight - oldHeight) > 0.2) {
+        const delta = currentHeight - oldHeight;
+        this._motionDirection = delta > 0 ? 'raising' : 'lowering';
+
+        // Clear any existing timeout
+        if (this._motionTimeout !== null) {
+          window.clearTimeout(this._motionTimeout);
+        }
+
+        // Clear motion state after 1.5 seconds of no height changes
+        this._motionTimeout = window.setTimeout(() => {
+          this._motionDirection = null;
+          this.requestUpdate();
+        }, 1500);
+      }
+    }
   }
 
   protected render(): TemplateResult | void {
