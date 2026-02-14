@@ -1,18 +1,20 @@
 {
   "name": "linak-desk-card",
-  "version": "1.0.1",
-  "description": "Home Assistant Lovelace card for Linak desks",
+  "version": "2.1.0",
+  "description": "Modern Home Assistant Lovelace card for Linak desks with intelligent motion detection",
   "keywords": [
     "home-assistant",
     "homeassistant",
     "hass",
     "lovelace",
     "custom-cards",
-    "linak-desk-card"
+    "linak-desk-card",
+    "standing-desk",
+    "idåsen"
   ],
   "module": "dist/linak-desk-card.js",
-  "repository": "git@github.com:IhorSyerkov/linak-desk-card.git",
-  "author": "Ihor Syerkov <serkov.ihor@gmail.com>",
+  "repository": "git@github.com:crash0verride11/linak-desk-card.git",
+  "author": "crash0verride11 <https://github.com/crash0verride11>",
   "license": "MIT",
   "dependencies": {
     "custom-card-helpers": "^1.6.8",
