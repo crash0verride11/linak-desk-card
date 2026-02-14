@@ -29,20 +29,43 @@ export class LinakDeskCard extends LitElement {
     return document.createElement('linak-desk-card-editor');
   }
 
-  public static getStubConfig(_: HomeAssistant, entities: string[]): Partial<LinakDeskCardConfig> {
+  private static getDefaultsForUnit(unit: string): { min_height: number; max_height: number; sit_height: number; stand_height: number } {
+    if (unit === 'in') {
+      return {
+        min_height: 25,
+        max_height: 50,
+        sit_height: 30.8,
+        stand_height: 42.5
+      };
+    }
+    // Default to cm
+    return {
+      min_height: 63,
+      max_height: 127,
+      sit_height: 78,
+      stand_height: 108
+    };
+  }
+
+  public static getStubConfig(hass: HomeAssistant, entities: string[]): Partial<LinakDeskCardConfig> {
       const [desk] = entities.filter((eid) => eid.substr(0, eid.indexOf('.')) === 'cover' && eid.includes('desk'));
       const [height_sensor] = entities.filter((eid) => eid.substr(0, eid.indexOf('.')) === 'sensor' && eid.includes('desk_height'));
       const [moving_sensor] = entities.filter((eid) => eid.substr(0, eid.indexOf('.')) === 'binary_sensor' && eid.includes('desk_moving'));
       const [connection_sensor] = entities.filter((eid) => eid.substr(0, eid.indexOf('.')) === 'binary_sensor' && eid.includes('desk_connection'));
+
+    // Detect unit from height sensor
+    const unit = hass.states[height_sensor]?.attributes?.unit_of_measurement || 'cm';
+    const defaults = this.getDefaultsForUnit(unit);
+
     return {
       desk,
       height_sensor,
       moving_sensor,
       connection_sensor,
-      min_height: 62,
-      max_height: 127,
-      sit_height: 78,
-      stand_height: 106,
+      min_height: defaults.min_height,
+      max_height: defaults.max_height,
+      sit_height: defaults.sit_height,
+      stand_height: defaults.stand_height,
       presets: []
     };
   }
@@ -59,11 +82,7 @@ export class LinakDeskCard extends LitElement {
       throw new Error(localize('common.min_and_max_height_required'));
     }
 
-    this.config = {
-      sit_height: 78,
-      stand_height: 106,
-      ...config
-    };
+    this.config = config;
   }
 
   get desk(): HassEntity {
@@ -78,6 +97,14 @@ export class LinakDeskCard extends LitElement {
   get heightUnit(): string {
     // Get unit from height sensor, default to 'cm' if not available
     return this.hass.states[this.config.height_sensor]?.attributes?.unit_of_measurement || 'cm';
+  }
+
+  get sitHeightDefault(): number {
+    return this.heightUnit === 'in' ? 30.8 : 78;
+  }
+
+  get standHeightDefault(): number {
+    return this.heightUnit === 'in' ? 42.5 : 108;
   }
 
   get relativeHeight(): number {
@@ -99,8 +126,8 @@ export class LinakDeskCard extends LitElement {
   }
 
   get deskState(): DeskState {
-    const sitHeight = this.config.sit_height || 78;
-    const standHeight = this.config.stand_height || 106;
+    const sitHeight = this.config.sit_height ?? this.sitHeightDefault;
+    const standHeight = this.config.stand_height ?? this.standHeightDefault;
 
     // Use desk_state_entity if configured
     if (this.config.desk_state_entity) {
@@ -269,20 +296,14 @@ export class LinakDeskCard extends LitElement {
   }
 
   renderButtons(): TemplateResult {
-    console.log('[LinakDeskCard] renderButtons called');
     const state = this.deskState;
-    const sitHeight = this.config.sit_height || 78;
-    const standHeight = this.config.stand_height || 106;
-    console.log('[LinakDeskCard] sitHeight:', sitHeight, 'standHeight:', standHeight);
+    const sitHeight = this.config.sit_height ?? this.sitHeightDefault;
+    const standHeight = this.config.stand_height ?? this.standHeightDefault;
 
     // Proximity checks: show motion label only when close to target
     const isRaisingToStand = state === 'raising' && this.height < (standHeight - 2);
     const isLoweringToSit = state === 'lowering' && this.height > (sitHeight + 2);
     const isMoving = state === 'raising' || state === 'lowering';
-
-    console.log('[LinakDeskCard] renderButtons - state:', state, 'height:', this.height,
-                'sitHeight:', sitHeight, 'standHeight:', standHeight,
-                'isRaisingToStand:', isRaisingToStand, 'isLoweringToSit:', isLoweringToSit);
 
     // Button class logic
     const standBtnClass = state === 'stand' ? 'btn-active-stand'
@@ -320,24 +341,15 @@ export class LinakDeskCard extends LitElement {
   }
 
   handlePreset(target: number): void {
-    console.log('[LinakDeskCard] handlePreset called with target:', target);
-    console.log('[LinakDeskCard] config.max_height:', this.config.max_height);
-
     if (target > this.config.max_height) {
-      console.log('[LinakDeskCard] target exceeds max_height, returning early');
       return;
     }
 
     const travelDist = this.config.max_height - this.config.min_height;
     const positionInPercent = Math.round(((target - this.config.min_height) / travelDist) * 100);
 
-    console.log('[LinakDeskCard] calculated position:', positionInPercent, '%');
-
     if (Number.isInteger(positionInPercent)) {
-      console.log('[LinakDeskCard] calling set_cover_position service');
       this.callService('set_cover_position', { position: positionInPercent });
-    } else {
-      console.log('[LinakDeskCard] positionInPercent is not an integer:', positionInPercent);
     }
   }
 
