@@ -94,12 +94,29 @@ export class LinakDeskCard extends LitElement {
   }
 
   get deskState(): DeskState {
+    const sitHeight = this.config.sit_height || 78;
+    const standHeight = this.config.stand_height || 106;
+
     // Use desk_state_entity if configured
     if (this.config.desk_state_entity) {
       const entityState = this.hass.states[this.config.desk_state_entity]?.state?.toLowerCase();
       console.log('[LinakDeskCard] desk_state_entity:', this.config.desk_state_entity, 'state:', entityState);
+
       if (entityState === 'raising' || entityState === 'lowering' ||
           entityState === 'sit' || entityState === 'stand') {
+
+        // Smart override: if automation says "raising" but we've reached stand height, we're standing
+        if (entityState === 'raising' && this.height >= standHeight - 0.5) {
+          console.log('[LinakDeskCard] Override: reached stand height, changing state from raising to stand');
+          return 'stand';
+        }
+
+        // Smart override: if automation says "lowering" but we've reached sit height, we're sitting
+        if (entityState === 'lowering' && this.height <= sitHeight + 0.5) {
+          console.log('[LinakDeskCard] Override: reached sit height, changing state from lowering to sit');
+          return 'sit';
+        }
+
         console.log('[LinakDeskCard] Using entity state:', entityState);
         return entityState as DeskState;
       }
@@ -107,8 +124,6 @@ export class LinakDeskCard extends LitElement {
     }
 
     // Fallback to midpoint logic for backward compatibility
-    const sitHeight = this.config.sit_height || 78;
-    const standHeight = this.config.stand_height || 106;
     const midpoint = (sitHeight + standHeight) / 2;
 
     if (this.moving) {
