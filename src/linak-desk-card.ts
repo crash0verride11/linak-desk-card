@@ -734,6 +734,7 @@ export class LinakDeskCard extends LitElement {
           transparent 70%
         );
         animation: shimmer-sweep 1.8s ease-in-out infinite;
+        pointer-events: none;
       }
 
       /* Text pulse for motion buttons */
