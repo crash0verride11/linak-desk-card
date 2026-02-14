@@ -96,11 +96,14 @@ export class LinakDeskCard extends LitElement {
   get deskState(): DeskState {
     // Use desk_state_entity if configured
     if (this.config.desk_state_entity) {
-      const entityState = this.hass.states[this.config.desk_state_entity]?.state;
+      const entityState = this.hass.states[this.config.desk_state_entity]?.state?.toLowerCase();
+      console.log('[LinakDeskCard] desk_state_entity:', this.config.desk_state_entity, 'state:', entityState);
       if (entityState === 'raising' || entityState === 'lowering' ||
           entityState === 'sit' || entityState === 'stand') {
+        console.log('[LinakDeskCard] Using entity state:', entityState);
         return entityState as DeskState;
       }
+      console.log('[LinakDeskCard] Entity state did not match expected values, falling back to midpoint logic');
     }
 
     // Fallback to midpoint logic for backward compatibility
@@ -253,6 +256,10 @@ export class LinakDeskCard extends LitElement {
     const isRaisingToStand = state === 'raising' && this.height < (standHeight - 2);
     const isLoweringToSit = state === 'lowering' && this.height > (sitHeight + 2);
     const isMoving = state === 'raising' || state === 'lowering';
+
+    console.log('[LinakDeskCard] renderButtons - state:', state, 'height:', this.height,
+                'sitHeight:', sitHeight, 'standHeight:', standHeight,
+                'isRaisingToStand:', isRaisingToStand, 'isLoweringToSit:', isLoweringToSit);
 
     // Button class logic
     const standBtnClass = state === 'stand' ? 'btn-active-stand'
