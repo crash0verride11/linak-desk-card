@@ -6,7 +6,7 @@
 
 A modern, feature-rich card for controlling standing desks with intelligent height detection, automatic motion tracking, and adaptive button states.
 
-![linak-desk-card_preview](https://user-images.githubusercontent.com/9998984/107797805-a3a6c800-6d5b-11eb-863a-56ae0343995c.png)
+![linak-desk-card_preview](https://github.com/crash0verride11/linak-desk-card/blob/remastered/linak-desk-card.png)
 
 ## Features
 
