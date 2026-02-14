@@ -269,9 +269,11 @@ export class LinakDeskCard extends LitElement {
   }
 
   renderButtons(): TemplateResult {
+    console.log('[LinakDeskCard] renderButtons called');
     const state = this.deskState;
     const sitHeight = this.config.sit_height || 78;
     const standHeight = this.config.stand_height || 106;
+    console.log('[LinakDeskCard] sitHeight:', sitHeight, 'standHeight:', standHeight);
 
     // Proximity checks: show motion label only when close to target
     const isRaisingToStand = state === 'raising' && this.height < (standHeight - 2);
@@ -318,15 +320,24 @@ export class LinakDeskCard extends LitElement {
   }
 
   handlePreset(target: number): void {
+    console.log('[LinakDeskCard] handlePreset called with target:', target);
+    console.log('[LinakDeskCard] config.max_height:', this.config.max_height);
+
     if (target > this.config.max_height) {
+      console.log('[LinakDeskCard] target exceeds max_height, returning early');
       return;
     }
 
     const travelDist = this.config.max_height - this.config.min_height;
     const positionInPercent = Math.round(((target - this.config.min_height) / travelDist) * 100);
 
+    console.log('[LinakDeskCard] calculated position:', positionInPercent, '%');
+
     if (Number.isInteger(positionInPercent)) {
+      console.log('[LinakDeskCard] calling set_cover_position service');
       this.callService('set_cover_position', { position: positionInPercent });
+    } else {
+      console.log('[LinakDeskCard] positionInPercent is not an integer:', positionInPercent);
     }
   }
 
