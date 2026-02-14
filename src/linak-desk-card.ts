@@ -515,15 +515,15 @@ export class LinakDeskCard extends LitElement {
       }
 
       .btn-active-sit {
-        background: var(--sit-dim);
-        color: var(--sit-text);
-        border: 1px solid var(--sit-border);
+        background: var(--sit-color, #3b82f6);
+        color: white;
+        border: 1px solid var(--sit-color, #3b82f6);
       }
 
       .btn-active-stand {
-        background: var(--stand-dim);
-        color: var(--stand-text);
-        border: 1px solid var(--stand-border);
+        background: var(--stand-color, #22c55e);
+        color: white;
+        border: 1px solid var(--stand-color, #22c55e);
       }
 
       .btn-ghost {
