@@ -26,6 +26,14 @@ export class LinakDeskCard extends LitElement {
     return document.createElement('linak-desk-card-editor');
   }
 
+  public static getGridOptions() {
+    return {
+      rows: 2,
+      columns: 12,
+      min_rows: 2,
+    };
+  }
+
   private static getDefaultsForUnit(unit: string): { min_height: number; max_height: number; sit_height: number; stand_height: number } {
     if (unit === 'in') {
       return {
@@ -306,7 +314,7 @@ export class LinakDeskCard extends LitElement {
     }
 
     return html`
-      <svg class="desk-svg ${stateClass}" width="32" height="48" viewBox="0 0 32 48">
+      <svg class="desk-svg ${stateClass}" width="50" height="55" viewBox="0 0 32 48">
         <g class="desk-surface">
           <rect x="0" y="2" width="32" height="3" rx="1.5" fill="${surfaceColor}" opacity="${surfaceOpacity}"/>
         </g>
@@ -500,12 +508,12 @@ export class LinakDeskCard extends LitElement {
         display: flex;
         flex-direction: row;
         align-items: flex-end;
-        gap: 8px;
+        gap: 10px;
       }
 
       .col-desk {
         flex-shrink: 0;
-        width: 32px;
+        width: 50px;
         display: flex;
         align-items: flex-end;
         justify-content: center;
@@ -520,16 +528,16 @@ export class LinakDeskCard extends LitElement {
       }
 
       .height-num {
-        font-size: 34px;
+        font-size: 42px;
         font-weight: 400;
-        letter-spacing: -1.2px;
+        letter-spacing: -1.4px;
         line-height: 1;
       }
 
       .height-unit {
-        font-size: 14px;
+        font-size: 21px;
         font-weight: 400;
-        letter-spacing: -0.5px;
+        letter-spacing: -0.4px;
         opacity: 0.6;
         margin-left: 1px;
       }
@@ -545,9 +553,9 @@ export class LinakDeskCard extends LitElement {
 
       /* ── Gauge track ─────────────────────── */
       .gauge-track {
-        width: 6px;
+        width: 8px;
         background: var(--divider-color, rgba(255, 255, 255, 0.1));
-        border-radius: 4px;
+        border-radius: 5px;
         position: relative;
         overflow: hidden;
         align-self: stretch;
@@ -558,7 +566,7 @@ export class LinakDeskCard extends LitElement {
         bottom: 0;
         left: 0;
         width: 100%;
-        border-radius: 6px;
+        border-radius: 7px;
         transition: height 0.3s ease, background 0.3s ease;
       }
 
@@ -566,22 +574,23 @@ export class LinakDeskCard extends LitElement {
       .btn-stack {
         display: flex;
         flex-direction: column;
-        gap: 6px;
+        gap: 10px;
         justify-content: space-between;
       }
 
       .btn {
         border: none;
-        border-radius: 8px;
-        padding: 0 11px;
-        height: 30px;
-        font-size: 11px;
+        border-radius: 10px;
+        padding: 0 14px;
+        height: 40px;
+        min-width: 140px;
+        font-size: 12px;
         font-weight: 600;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 5px;
+        gap: 12px;
         white-space: nowrap;
         letter-spacing: 0.02em;
         position: relative;
@@ -590,8 +599,8 @@ export class LinakDeskCard extends LitElement {
       }
 
       .btn svg {
-        width: 10px;
-        height: 10px;
+        width: 12px;
+        height: 12px;
         flex-shrink: 0;
       }
 
