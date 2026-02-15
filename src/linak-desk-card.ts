@@ -236,7 +236,7 @@ export class LinakDeskCard extends LitElement {
         this._motionTimeout = window.setTimeout(() => {
           this._motionDirection = null;
           this.requestUpdate();
-        }, 1500);
+        }, 2000);
       }
     }
   }
@@ -298,7 +298,7 @@ export class LinakDeskCard extends LitElement {
     // Color scheme based on state
     let surfaceColor = '#60a5fa'; // sit blue
     let legColor = '#3b82f6';
-    let surfaceOpacity = 0.85;
+    let surfaceOpacity = 1.0;
     let legOpacity = 0.35;
     let baseOpacity = 0.2;
 
@@ -314,14 +314,16 @@ export class LinakDeskCard extends LitElement {
     }
 
     return html`
-      <svg class="desk-svg ${stateClass}" width="50" height="55" viewBox="0 0 32 48">
+      <svg class="desk-svg ${stateClass}" width="60" height="55" viewBox="0 0 45 48">
         <g class="desk-surface">
-          <rect x="0" y="2" width="32" height="3" rx="1.5" fill="${surfaceColor}" opacity="${surfaceOpacity}"/>
+          <rect x="0" y="0" width="45" height="4" rx="1.5" fill="${surfaceColor}" opacity="${surfaceOpacity}"/>
         </g>
         <g class="desk-legs">
-          <rect x="3" y="5" width="5" height="38" rx="2" fill="${legColor}" opacity="${legOpacity}"/>
-          <rect x="24" y="5" width="5" height="38" rx="2" fill="${legColor}" opacity="${legOpacity}"/>
-          <rect x="1" y="44" width="30" height="4" rx="1.5" fill="${legColor}" opacity="${baseOpacity}"/>
+          <rect x="3" y="6" width="5" height="40" fill="${legColor}" opacity="${legOpacity}"/>
+          <rect x="37" y="6" width="5" height="40" fill="${legColor}" opacity="${legOpacity}"/>
+        </g>
+        <g class="desk-base">
+          <rect x="1" y="46" width="43" height="2" rx="1" fill="${legColor}" opacity="${baseOpacity}"/>
         </g>
       </svg>
     `;
@@ -400,20 +402,24 @@ export class LinakDeskCard extends LitElement {
     const standClickClass = this._clickAnimating.has('stand') ? 'btn-click' : '';
     const sitClickClass = this._clickAnimating.has('sit') ? 'btn-click' : '';
 
+    const standIcon = standBtnClass === 'btn-active-stand'
+      ? html`<svg viewBox="0 0 10 10"><circle cx="5" cy="5" r="3" fill="currentColor"/></svg>`
+      : html`<svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1,7 5,2 9,7"/></svg>`;
+
+    const sitIcon = sitBtnClass === 'btn-active-sit'
+      ? html`<svg viewBox="0 0 10 10"><circle cx="5" cy="5" r="3" fill="currentColor"/></svg>`
+      : html`<svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1,3 5,8 9,3"/></svg>`;
+
     return html`
       <div class="btn-stack">
         <button class="btn ${standBtnClass} ${standClickClass}"
                 @click=${() => this.handlePreset(standHeight, 'stand')}>
-          <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="1,7 5,2 9,7"/>
-          </svg>
+          ${standIcon}
           <span class="${standTextClass}">${standLabel}</span>
         </button>
         <button class="btn ${sitBtnClass} ${sitClickClass}"
                 @click=${() => this.handlePreset(sitHeight, 'sit')}>
-          <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="1,3 5,8 9,3"/>
-          </svg>
+          ${sitIcon}
           <span class="${sitTextClass}">${sitLabel}</span>
         </button>
       </div>
@@ -484,7 +490,7 @@ export class LinakDeskCard extends LitElement {
         display: flex;
         flex-direction: row;
         align-items: stretch;
-        gap: 12px;
+        gap: 32px;
       }
 
       /* ── Left column: title top, desk+number bottom ─────────── */
@@ -508,12 +514,12 @@ export class LinakDeskCard extends LitElement {
         display: flex;
         flex-direction: row;
         align-items: flex-end;
-        gap: 10px;
+        gap: 6px;
       }
 
       .col-desk {
         flex-shrink: 0;
-        width: 50px;
+        width: 60px;
         display: flex;
         align-items: flex-end;
         justify-content: center;
@@ -524,22 +530,22 @@ export class LinakDeskCard extends LitElement {
       }
 
       .desk-legs {
-        transform-origin: 50% 100%;
+        transform-origin: 50% calc(100% - 2px);
       }
 
       .height-num {
-        font-size: 42px;
+        font-size: 36px;
         font-weight: 400;
         letter-spacing: -1.4px;
         line-height: 1;
       }
 
       .height-unit {
-        font-size: 21px;
+        font-size: 18px;
         font-weight: 400;
-        letter-spacing: -0.4px;
+        letter-spacing: -0.2px;
         opacity: 0.6;
-        margin-left: 1px;
+        margin-left: 4px;
       }
 
       /* ── Gauge + buttons column ──────────── */
@@ -548,6 +554,7 @@ export class LinakDeskCard extends LitElement {
         display: flex;
         flex-direction: row;
         align-items: stretch;
+        padding: 0px 4px;
         gap: 8px;
       }
 
@@ -580,17 +587,17 @@ export class LinakDeskCard extends LitElement {
 
       .btn {
         border: none;
-        border-radius: 10px;
+        border-radius: 12px;
         padding: 0 14px;
-        height: 40px;
-        min-width: 140px;
-        font-size: 12px;
-        font-weight: 600;
+        width: auto;
+        height: 36px;
+        min-width: 120px;
+        font-size: 14px;
+        font-weight: 500;
         cursor: pointer;
-        display: flex;
+        display: grid;
+        grid-template-columns: 1fr 2fr;
         align-items: center;
-        justify-content: center;
-        gap: 12px;
         white-space: nowrap;
         letter-spacing: 0.02em;
         position: relative;
@@ -601,7 +608,12 @@ export class LinakDeskCard extends LitElement {
       .btn svg {
         width: 12px;
         height: 12px;
-        flex-shrink: 0;
+        justify-self: end;
+        margin-right: 12px;
+      }
+
+      .btn span {
+        justify-self: center;
       }
 
       .btn-active-sit {
@@ -670,12 +682,12 @@ export class LinakDeskCard extends LitElement {
 
       /* Static states */
       .state-sit .desk-surface {
-        transform: translateY(27px);
+        transform: translateY(24px);
         transition: transform 0.3s ease;
       }
 
       .state-sit .desk-legs {
-        transform: scaleY(0.3);
+        transform: scaleY(0.4);
         transition: transform 0.3s ease;
       }
 
@@ -692,7 +704,7 @@ export class LinakDeskCard extends LitElement {
       /* Raising animation */
       @keyframes surface-raise {
         0% {
-          transform: translateY(27px);
+          transform: translateY(24px);
           animation-timing-function: cubic-bezier(0.42, 0, 0.22, 1);
         }
         62% {
@@ -703,17 +715,17 @@ export class LinakDeskCard extends LitElement {
           transform: translateY(0px);
         }
         80.01% {
-          transform: translateY(27px);
+          transform: translateY(24px);
           animation-timing-function: cubic-bezier(0.42, 0, 0.22, 1);
         }
         100% {
-          transform: translateY(27px);
+          transform: translateY(24px);
         }
       }
 
       @keyframes legs-raise {
         0% {
-          transform: scaleY(0.3);
+          transform: scaleY(0.4);
           animation-timing-function: cubic-bezier(0.42, 0, 0.22, 1);
         }
         62% {
@@ -724,11 +736,11 @@ export class LinakDeskCard extends LitElement {
           transform: scaleY(1);
         }
         80.01% {
-          transform: scaleY(0.3);
+          transform: scaleY(0.4);
           animation-timing-function: cubic-bezier(0.42, 0, 0.22, 1);
         }
         100% {
-          transform: scaleY(0.3);
+          transform: scaleY(0.4);
         }
       }
 
@@ -760,11 +772,11 @@ export class LinakDeskCard extends LitElement {
           animation-timing-function: cubic-bezier(0.42, 0, 0.22, 1);
         }
         62% {
-          transform: translateY(27px);
+          transform: translateY(24px);
           animation-timing-function: steps(1, end);
         }
         80% {
-          transform: translateY(27px);
+          transform: translateY(24px);
         }
         80.01% {
           transform: translateY(0px);
@@ -781,11 +793,11 @@ export class LinakDeskCard extends LitElement {
           animation-timing-function: cubic-bezier(0.42, 0, 0.22, 1);
         }
         62% {
-          transform: scaleY(0.3);
+          transform: scaleY(0.4);
           animation-timing-function: steps(1, end);
         }
         80% {
-          transform: scaleY(0.3);
+          transform: scaleY(0.4);
         }
         80.01% {
           transform: scaleY(1);
