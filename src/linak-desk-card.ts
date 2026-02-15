@@ -303,8 +303,8 @@ export class LinakDeskCard extends LitElement {
     let surfaceColor = '#60a5fa'; // sit blue
     let legColor = '#3b82f6';
     let surfaceOpacity = 1.0;
-    let legOpacity = 0.35;
-    let baseOpacity = 0.2;
+    let legOpacity = 0.4;
+    let baseOpacity = 0.6;
 
     if (state === 'stand') {
       surfaceColor = '#4ade80'; // stand green
@@ -314,20 +314,23 @@ export class LinakDeskCard extends LitElement {
       legColor = '#6b7280';
       surfaceOpacity = 0.7;
       legOpacity = 0.3;
-      baseOpacity = 0.18;
+      baseOpacity = 0.4;
     }
 
     return html`
-      <svg class="desk-svg ${stateClass}" width="60" height="55" viewBox="0 0 45 48">
+      <svg class="desk-svg ${stateClass}" width="60" height="55" viewBox="0 0 60 48">
         <g class="desk-surface">
-          <rect x="0" y="0" width="45" height="4" rx="1.5" fill="${surfaceColor}" opacity="${surfaceOpacity}"/>
+          <rect x="0" y="0" width="60" height="4" rx="1.5" fill="${surfaceColor}" opacity="${surfaceOpacity}"/>
         </g>
         <g class="desk-legs">
-          <rect x="3" y="6" width="5" height="40" fill="${legColor}" opacity="${legOpacity}"/>
-          <rect x="37" y="6" width="5" height="40" fill="${legColor}" opacity="${legOpacity}"/>
+          <rect x="3" y="6" width="4" height="40" fill="${legColor}" opacity="${legOpacity}"/>
+          <rect x="53" y="6" width="4" height="40" fill="${legColor}" opacity="${legOpacity}"/>
         </g>
         <g class="desk-base">
-          <rect x="1" y="46" width="43" height="2" rx="1" fill="${legColor}" opacity="${baseOpacity}"/>
+          <rect x="1" y="46" width="8" height="2" rx="1" fill="${legColor}" opacity="${baseOpacity}"/>
+        </g>
+        <g class="desk-base">
+          <rect x="51" y="46" width="8" height="2" rx="1" fill="${legColor}" opacity="${baseOpacity}"/>
         </g>
       </svg>
     `;
@@ -528,7 +531,7 @@ export class LinakDeskCard extends LitElement {
         display: flex;
         flex-direction: row;
         align-items: flex-end;
-        gap: 6px;
+        gap: 8px;
       }
 
       .col-desk {
