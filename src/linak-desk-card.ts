@@ -37,7 +37,7 @@ export class LinakDeskCard extends LitElement {
   private static getDefaultsForUnit(unit: string): { min_height: number; max_height: number; sit_height: number; stand_height: number } {
     if (unit === 'in') {
       return {
-        min_height: 25,
+        min_height: 24.75,
         max_height: 50,
         sit_height: 30.8,
         stand_height: 42.5
@@ -87,10 +87,6 @@ export class LinakDeskCard extends LitElement {
       throw new Error(localize('common.desk_and_height_required'));
     }
 
-    if (!config.min_height || !config.max_height) {
-      throw new Error(localize('common.min_and_max_height_required'));
-    }
-
     this.config = config;
   }
 
@@ -115,6 +111,14 @@ export class LinakDeskCard extends LitElement {
     return this.hass.states[this.config.height_sensor]?.attributes?.unit_of_measurement || 'cm';
   }
 
+  get minHeight(): number {
+    return this.config.min_height ?? LinakDeskCard.getDefaultsForUnit(this.heightUnit).min_height;
+  }
+
+  get maxHeight(): number {
+    return this.config.max_height ?? LinakDeskCard.getDefaultsForUnit(this.heightUnit).max_height;
+  }
+
   get sitHeightDefault(): number {
     return this.heightUnit === 'in' ? 30.8 : 78;
   }
@@ -125,7 +129,7 @@ export class LinakDeskCard extends LitElement {
 
   get relativeHeight(): number {
     // Calculate relative height (offset from minimum)
-    return this.height - this.config.min_height;
+    return this.height - this.minHeight;
   }
 
   get connected(): boolean {
@@ -144,7 +148,7 @@ export class LinakDeskCard extends LitElement {
 
   get alpha(): number {
     // Percentage of desk range (0 to 1)
-    return this.relativeHeight / (this.config.max_height - this.config.min_height);
+    return this.relativeHeight / (this.maxHeight - this.minHeight);
   }
 
   get deskState(): DeskState {
@@ -185,12 +189,12 @@ export class LinakDeskCard extends LitElement {
 
   get isInClearSitZone(): boolean {
     const sitHeight = this.config.sit_height ?? this.sitHeightDefault;
-    return this.height <= sitHeight + 2;
+    return this.height <= sitHeight + 1;
   }
 
   get isInClearStandZone(): boolean {
     const standHeight = this.config.stand_height ?? this.standHeightDefault;
-    return this.height >= standHeight - 2;
+    return this.height >= standHeight - 1;
   }
 
   protected shouldUpdate(changedProps: PropertyValues): boolean {
@@ -356,8 +360,8 @@ export class LinakDeskCard extends LitElement {
     const midpoint = (sitHeight + standHeight) / 2;
 
     // Proximity checks: show motion label only when close to target
-    const isRaisingToStand = state === 'raising' && this.height < (standHeight - 2);
-    const isLoweringToSit = state === 'lowering' && this.height > (sitHeight + 2);
+    const isRaisingToStand = state === 'raising' && this.height < (standHeight - 1);
+    const isLoweringToSit = state === 'lowering' && this.height > (sitHeight + 1);
     const isMoving = state === 'raising' || state === 'lowering';
 
     // Determine which side of midpoint we're on (when not in motion)
@@ -427,7 +431,7 @@ export class LinakDeskCard extends LitElement {
   }
 
   handlePreset(target: number, buttonId?: string): void {
-    if (target > this.config.max_height) {
+    if (target > this.maxHeight) {
       return;
     }
 
@@ -443,8 +447,8 @@ export class LinakDeskCard extends LitElement {
       }, 600);
     }
 
-    const travelDist = this.config.max_height - this.config.min_height;
-    const positionInPercent = Math.round(((target - this.config.min_height) / travelDist) * 100);
+    const travelDist = this.maxHeight - this.minHeight;
+    const positionInPercent = Math.round(((target - this.minHeight) / travelDist) * 100);
 
     if (Number.isInteger(positionInPercent)) {
       this.callService('set_cover_position', { position: positionInPercent });

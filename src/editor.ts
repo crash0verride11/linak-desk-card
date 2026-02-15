@@ -44,10 +44,10 @@ export class LinakDeskCardEditor extends LitElement implements LovelaceCardEdito
             type: 'expandable',
             title: localize('editor.section_height'),
             schema: [
-              { name: 'min_height', required: true, selector: { number: { mode: 'box', step: 0.1 } } },
-              { name: 'max_height', required: true, selector: { number: { mode: 'box', step: 0.1 } } },
-              { name: 'sit_height', selector: { number: { mode: 'box', step: 0.1 } } },
-              { name: 'stand_height', selector: { number: { mode: 'box', step: 0.1 } } },
+              { name: 'min_height', selector: { number: { mode: 'box', step: 0.01 } } },
+              { name: 'max_height', selector: { number: { mode: 'box', step: 0.01 } } },
+              { name: 'sit_height', selector: { number: { mode: 'box', step: 0.01 } } },
+              { name: 'stand_height', selector: { number: { mode: 'box', step: 0.01 } } },
             ],
           },
         ]}

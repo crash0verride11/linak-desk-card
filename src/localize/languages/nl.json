@@ -4,8 +4,7 @@
     "name":"Linak-bureau Card",
     "description": "Card voor het bedienen van de hoogte van het Linak-bureau",
     "invalid_configuration": "Ongeldige configuratie",
-    "desk_and_height_required": "Bureau- en hoogtesensoren zijn vereist",
-    "min_and_max_height_required": "`min_height`- en `max_height`-instellingen zijn vereist"
+    "desk_and_height_required": "Bureau- en hoogtesensoren zijn vereist"
   },
   "editor": {
     "name": "Naam (Optioneel)",
@@ -13,8 +12,8 @@
     "height_sensor":"Hoogtesensor (Vereist)",
     "connection_sensor":"Connectie-sensor (Vereist)",
     "moving_sensor":"Bewegingssensor (Vereist)",
-    "min_height":"Min. hoogte (Vereist)",
-    "max_height":"Max. hoogte (Vereist)",
+    "min_height":"Min. hoogte (Optioneel)",
+    "max_height":"Max. hoogte (Optioneel)",
     "presets":"Voorinstellingen"
   },
   "status": {

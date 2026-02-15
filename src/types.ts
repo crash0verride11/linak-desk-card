@@ -21,8 +21,8 @@ export interface LinakDeskCardConfig extends LovelaceCardConfig {
   moving_sensor?: string;
   connection_sensor?: string;
   height_sensor: string;
-  max_height: number;
-  min_height: number;
+  max_height?: number;
+  min_height?: number;
   sit_height?: number;
   stand_height?: number;
   presets: {
