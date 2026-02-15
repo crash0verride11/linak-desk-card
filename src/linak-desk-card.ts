@@ -171,10 +171,10 @@ export class LinakDeskCard extends LitElement {
     }
 
     // Static state - use proximity zones
-    if (this.height >= standHeight - 2) {
+    if (this.height >= standHeight - 1) {
       return 'stand';
     }
-    if (this.height <= sitHeight + 2) {
+    if (this.height <= sitHeight + 1) {
       return 'sit';
     }
 
@@ -258,12 +258,12 @@ export class LinakDeskCard extends LitElement {
       <ha-card>
         <div class="card-inner">
           <div class="col-left">
-            ${!this.config.hide_title ? html`<div class="card-title">${this.cardTitle}</div>` : ''}
+            ${!this.config.hide_title ? html`<div class="card-title" @click=${() => this._showMoreInfo(this.config.desk)}>${this.cardTitle}</div>` : ''}
             <div class="desk-row">
               <div class="col-desk">
                 ${this.renderDeskSVG()}
               </div>
-              <div class="height-num" style="color: ${heightColor};">
+              <div class="height-num" style="color: ${heightColor};" @click=${() => this._showMoreInfo(this.config.height_sensor)}>
                 ${displayHeight}<span class="height-unit">${this.heightUnit}</span>
               </div>
             </div>
@@ -451,6 +451,15 @@ export class LinakDeskCard extends LitElement {
     }
   }
 
+  private _showMoreInfo(entityId: string): void {
+    const event = new CustomEvent('hass-more-info', {
+      bubbles: true,
+      composed: true,
+      detail: { entityId },
+    });
+    this.dispatchEvent(event);
+  }
+
   private callService(service: string, options = {}): void {
     this.hass.callService('cover', service, {
       entity_id: this.config.desk,
@@ -507,6 +516,7 @@ export class LinakDeskCard extends LitElement {
         font-weight: 500;
         color: var(--primary-text-color, #e2e6f0);
         line-height: 1;
+        cursor: pointer;
       }
 
       /* Desk icon + number side by side at bottom */
@@ -538,6 +548,7 @@ export class LinakDeskCard extends LitElement {
         font-weight: 400;
         letter-spacing: -1.4px;
         line-height: 1;
+        cursor: pointer;
       }
 
       .height-unit {
@@ -554,7 +565,7 @@ export class LinakDeskCard extends LitElement {
         display: flex;
         flex-direction: row;
         align-items: stretch;
-        padding: 0px 4px;
+        padding: 4px 0px;
         gap: 8px;
       }
 
