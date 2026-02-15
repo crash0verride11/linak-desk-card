@@ -29,6 +29,7 @@ export class LinakDeskCardEditor extends LitElement implements LovelaceCardEdito
         .data=${this._config}
         .schema=${[
           { name: 'name', selector: { text: {} } },
+          { name: 'hide_title', selector: { boolean: {} } },
           {
             type: 'expandable',
             title: localize('editor.section_entities'),

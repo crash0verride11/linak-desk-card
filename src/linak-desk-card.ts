@@ -90,6 +90,13 @@ export class LinakDeskCard extends LitElement {
     return this.hass.states[this.config.desk];
   }
 
+  get cardTitle(): string {
+    // Use configured name, or fall back to desk entity's friendly name, or entity ID
+    return this.config.name ||
+           this.desk?.attributes?.friendly_name ||
+           this.config.desk;
+  }
+
   get height(): number {
     // Height sensor reports absolute height in cm
     return parseFloat(this.hass.states[this.config.height_sensor]?.state) || 0;
@@ -243,7 +250,7 @@ export class LinakDeskCard extends LitElement {
       <ha-card>
         <div class="card-inner">
           <div class="col-left">
-            <div class="card-title">${this.config.name || 'Desk'}</div>
+            ${!this.config.hide_title ? html`<div class="card-title">${this.cardTitle}</div>` : ''}
             <div class="desk-row">
               <div class="col-desk">
                 ${this.renderDeskSVG()}
@@ -482,8 +489,8 @@ export class LinakDeskCard extends LitElement {
       }
 
       .card-title {
-        font-size: 12px;
-        font-weight: 600;
+        font-size: 14px;
+        font-weight: 500;
         color: var(--primary-text-color, #e2e6f0);
         line-height: 1;
       }
@@ -514,15 +521,16 @@ export class LinakDeskCard extends LitElement {
 
       .height-num {
         font-size: 34px;
-        font-weight: 300;
-        letter-spacing: -1.5px;
+        font-weight: 400;
+        letter-spacing: -1.2px;
         line-height: 1;
       }
 
       .height-unit {
-        font-size: 13px;
+        font-size: 14px;
         font-weight: 400;
-        opacity: 0.45;
+        letter-spacing: -0.5px;
+        opacity: 0.6;
         margin-left: 1px;
       }
 
@@ -537,7 +545,7 @@ export class LinakDeskCard extends LitElement {
 
       /* ── Gauge track ─────────────────────── */
       .gauge-track {
-        width: 4px;
+        width: 6px;
         background: var(--divider-color, rgba(255, 255, 255, 0.1));
         border-radius: 4px;
         position: relative;
@@ -550,7 +558,7 @@ export class LinakDeskCard extends LitElement {
         bottom: 0;
         left: 0;
         width: 100%;
-        border-radius: 4px;
+        border-radius: 6px;
         transition: height 0.3s ease, background 0.3s ease;
       }
 

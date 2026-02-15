@@ -1,6 +1,7 @@
 {
   "name": "linak-desk-card",
-  "version": "2.1.2",
+  "version": "2.2.0-beta.1",
+  "type": "module",
   "description": "Modern Home Assistant Lovelace card for Linak desks with intelligent motion detection",
   "keywords": [
     "home-assistant",

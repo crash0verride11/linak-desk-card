@@ -9,6 +9,7 @@
   },
   "editor": {
     "name": "Name (Optional)",
+    "hide_title": "Hide Title",
     "desk":"Desk Entity (Required)",
     "height_sensor":"Height Sensor (Required)",
     "connection_sensor":"Connection Sensor (Optional)",
