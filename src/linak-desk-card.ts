@@ -271,21 +271,9 @@ export class LinakDeskCard extends LitElement {
     const state = this.deskState;
     const sitCss = this.computeCssColor(this.sitColor);
     const standCss = this.computeCssColor(this.standColor);
-
-    let heightColor = 'var(--sit-color)';
-
-    if (state === 'stand') {
-      heightColor = 'var(--stand-color)';
-    } else if (state === 'raising' || state === 'lowering') {
-      heightColor = 'var(--grey-text, #9ca3af)'; // motion grey
-    }
-
-    let stateColor = 'var(--sit-color)';
-    if (state === 'stand') {
-      stateColor = 'var(--stand-color)';
-    } else if (state === 'raising' || state === 'lowering') {
-      stateColor = 'var(--grey-text, #9ca3af)';
-    }
+    const isMoving = state === 'raising' || state === 'lowering';
+    const stateColor = isMoving ? 'var(--grey-text, #9ca3af)' :
+                       state === 'stand' ? 'var(--stand-color)' : 'var(--sit-color)';
 
     const colorVars = `
       --sit-color: ${sitCss};
@@ -309,17 +297,17 @@ export class LinakDeskCard extends LitElement {
             ${!this.config.hide_title ? html`<div class="card-title" @click=${() => this._showMoreInfo(this.config.desk)}>${this.cardTitle}</div>` : ''}
             <div class="desk-row">
               <div class="col-desk">
-                ${this.renderDeskSVG()}
+                ${this.renderDeskSVG(state)}
               </div>
-              <div class="height-num" style="color: ${heightColor};" @click=${() => this._showMoreInfo(this.config.height_sensor)}>
+              <div class="height-num" style="color: ${stateColor};" @click=${() => this._showMoreInfo(this.config.height_sensor)}>
                 ${displayHeight}<span class="height-unit">${this.heightUnit}</span>
               </div>
             </div>
           </div>
 
           <div class="col-right">
-            ${this.renderGauge()}
-            ${this.renderButtons()}
+            ${this.renderGauge(state)}
+            ${this.renderButtons(state)}
           </div>
         </div>
       </ha-card>
@@ -339,59 +327,38 @@ export class LinakDeskCard extends LitElement {
       `;
   }
 
-  renderDeskSVG(): TemplateResult {
-    const state = this.deskState;
+  renderDeskSVG(state: DeskState): TemplateResult {
     const stateClass = `state-${state}`;
-
-    // Color scheme based on state
-    let surfaceColor = 'var(--sit-color)';
-    let legColor = 'var(--sit-color)';
-    let surfaceOpacity = 1.0;
-    let legOpacity = 0.4;
-    let baseOpacity = 0.6;
-
-    if (state === 'stand') {
-      surfaceColor = 'var(--stand-color)';
-      legColor = 'var(--stand-color)';
-    } else if (state === 'raising' || state === 'lowering') {
-      surfaceColor = '#9ca3af'; // motion grey
-      legColor = '#6b7280';
-      surfaceOpacity = 0.7;
-      legOpacity = 0.3;
-      baseOpacity = 0.4;
-    }
+    const isMoving = state === 'raising' || state === 'lowering';
+    const color = 'var(--state-color)';
+    const surfaceOpacity = isMoving ? 0.7 : 1.0;
+    const legOpacity = isMoving ? 0.3 : 0.4;
+    const baseOpacity = isMoving ? 0.4 : 0.6;
 
     return html`
       <svg class="desk-svg ${stateClass}" width="60" height="55" viewBox="0 0 60 48">
         <g class="desk-surface">
-          <rect x="0" y="0" width="60" height="4" rx="1.5" fill="${surfaceColor}" opacity="${surfaceOpacity}"/>
+          <rect x="0" y="0" width="60" height="4" rx="1.5" fill="${color}" opacity="${surfaceOpacity}"/>
         </g>
         <g class="desk-legs">
-          <rect x="3" y="6" width="4" height="40" fill="${legColor}" opacity="${legOpacity}"/>
-          <rect x="53" y="6" width="4" height="40" fill="${legColor}" opacity="${legOpacity}"/>
+          <rect x="3" y="6" width="4" height="40" fill="${color}" opacity="${legOpacity}"/>
+          <rect x="53" y="6" width="4" height="40" fill="${color}" opacity="${legOpacity}"/>
         </g>
         <g class="desk-base">
-          <rect x="1" y="46" width="8" height="2" rx="1" fill="${legColor}" opacity="${baseOpacity}"/>
+          <rect x="1" y="46" width="8" height="2" rx="1" fill="${color}" opacity="${baseOpacity}"/>
         </g>
         <g class="desk-base">
-          <rect x="51" y="46" width="8" height="2" rx="1" fill="${legColor}" opacity="${baseOpacity}"/>
+          <rect x="51" y="46" width="8" height="2" rx="1" fill="${color}" opacity="${baseOpacity}"/>
         </g>
       </svg>
     `;
   }
 
-  renderGauge(): TemplateResult {
-    const state = this.deskState;
+  renderGauge(state: DeskState): TemplateResult {
     const gaugeHeight = `${this.alpha * 100}%`;
-
-    let fillColor = 'var(--sit-color, #3b82f6)';
-    if (state === 'stand') {
-      fillColor = 'var(--stand-color, #77bb41)';
-    } else if (state === 'raising' || state === 'lowering') {
-      fillColor = 'var(--grey-fill, #374151)';
-    }
-
-    const animClass = (state === 'raising' || state === 'lowering') ? 'gauge-anim' : '';
+    const isMoving = state === 'raising' || state === 'lowering';
+    const fillColor = isMoving ? 'var(--grey-fill, #374151)' : 'var(--state-color)';
+    const animClass = isMoving ? 'gauge-anim' : '';
 
     return html`
       <div class="gauge-track">
@@ -400,8 +367,7 @@ export class LinakDeskCard extends LitElement {
     `;
   }
 
-  renderButtons(): TemplateResult {
-    const state = this.deskState;
+  renderButtons(state: DeskState): TemplateResult {
     const sitHeight = this.config.sit_height ?? this.sitHeightDefault;
     const standHeight = this.config.stand_height ?? this.standHeightDefault;
     const midpoint = (sitHeight + standHeight) / 2;
@@ -634,7 +600,7 @@ export class LinakDeskCard extends LitElement {
         flex-direction: row;
         align-items: stretch;
         padding: 4px 0px;
-        gap: 8px;
+        gap: 12px;
       }
 
       /* ── Gauge track ─────────────────────── */
@@ -668,7 +634,7 @@ export class LinakDeskCard extends LitElement {
         border: none;
         border-radius: 12px;
         padding: 0 14px;
-        width: auto;
+        width: 100%;
         height: 36px;
         min-width: 120px;
         font-size: 14px;
