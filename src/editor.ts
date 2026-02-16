@@ -54,8 +54,8 @@ export class LinakDeskCardEditor extends LitElement implements LovelaceCardEdito
             type: 'expandable',
             title: localize('editor.section_colors'),
             schema: [
-              { name: 'sit_color', selector: { color_rgb: {} } },
-              { name: 'stand_color', selector: { color_rgb: {} } },
+              { name: 'sit_color', selector: { ui_color: {} } },
+              { name: 'stand_color', selector: { ui_color: {} } },
             ],
           },
         ]}

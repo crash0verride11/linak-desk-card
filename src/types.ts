@@ -25,8 +25,8 @@ export interface LinakDeskCardConfig extends LovelaceCardConfig {
   min_height?: number;
   sit_height?: number;
   stand_height?: number;
-  sit_color?: [number, number, number];
-  stand_color?: [number, number, number];
+  sit_color?: string;
+  stand_color?: string;
   presets: {
     target: number;
     label: string;

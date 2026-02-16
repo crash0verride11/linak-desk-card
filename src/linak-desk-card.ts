@@ -197,16 +197,26 @@ export class LinakDeskCard extends LitElement {
     return this.height >= standHeight - 1;
   }
 
-  get sitColor(): [number, number, number] {
-    return this.config.sit_color ?? [59, 130, 246];
+  get sitColor(): string {
+    return this.config.sit_color ?? 'blue';
   }
 
-  get standColor(): [number, number, number] {
-    return this.config.stand_color ?? [34, 197, 94];
+  get standColor(): string {
+    return this.config.stand_color ?? 'green';
   }
 
-  private lightenColor(rgb: [number, number, number], amount = 0.4): [number, number, number] {
-    return rgb.map(c => Math.round(c + (255 - c) * amount)) as [number, number, number];
+  private static readonly THEME_COLORS = new Set([
+    'primary', 'accent', 'red', 'pink', 'purple', 'deep-purple', 'indigo',
+    'blue', 'light-blue', 'cyan', 'teal', 'green', 'light-green', 'lime',
+    'yellow', 'amber', 'orange', 'deep-orange', 'brown', 'light-grey',
+    'grey', 'dark-grey', 'blue-grey', 'black', 'white',
+  ]);
+
+  private computeCssColor(color: string): string {
+    if (LinakDeskCard.THEME_COLORS.has(color)) {
+      return `var(--${color}-color)`;
+    }
+    return color;
   }
 
   protected shouldUpdate(changedProps: PropertyValues): boolean {
@@ -259,28 +269,26 @@ export class LinakDeskCard extends LitElement {
 
   protected render(): TemplateResult | void {
     const state = this.deskState;
-    const sitRgb = this.sitColor;
-    const standRgb = this.standColor;
-    ///const sitLight = this.lightenColor(sitRgb);
-    //const standLight = this.lightenColor(standRgb);
+    const sitCss = this.computeCssColor(this.sitColor);
+    const standCss = this.computeCssColor(this.standColor);
 
-    let heightColor = `rgb(${sitRgb})`;
+    let heightColor = 'var(--sit-color)';
 
     if (state === 'stand') {
-      heightColor = `rgb(${standRgb})`;
+      heightColor = 'var(--stand-color)';
     } else if (state === 'raising' || state === 'lowering') {
       heightColor = 'var(--grey-text, #9ca3af)'; // motion grey
     }
 
     const colorVars = `
-      --sit-color: rgb(${sitRgb});
-      --sit-dim: rgba(${sitRgb}, 0.14);
-      --sit-text: rgb(${sitRgb});
-      --sit-border: rgba(${sitRgb}, 0.22);
-      --stand-color: rgb(${standRgb});
-      --stand-dim: rgba(${standRgb}, 0.14);
-      --stand-text: rgb(${standRgb});
-      --stand-border: rgba(${standRgb}, 0.22);
+      --sit-color: ${sitCss};
+      --sit-dim: color-mix(in srgb, ${sitCss} 14%, transparent);
+      --sit-text: ${sitCss};
+      --sit-border: color-mix(in srgb, ${sitCss} 22%, transparent);
+      --stand-color: ${standCss};
+      --stand-dim: color-mix(in srgb, ${standCss} 14%, transparent);
+      --stand-text: ${standCss};
+      --stand-border: color-mix(in srgb, ${standCss} 22%, transparent);
     `;
 
     // Round height to 1 decimal place
@@ -328,18 +336,15 @@ export class LinakDeskCard extends LitElement {
     const stateClass = `state-${state}`;
 
     // Color scheme based on state
-    const sitRgb = this.sitColor;
-    const standRgb = this.standColor;
-
-    let surfaceColor = `rgb(${sitRgb})`;
-    let legColor = `rgb(${sitRgb})`;
+    let surfaceColor = 'var(--sit-color)';
+    let legColor = 'var(--sit-color)';
     let surfaceOpacity = 1.0;
     let legOpacity = 0.4;
     let baseOpacity = 0.6;
 
     if (state === 'stand') {
-      surfaceColor = `rgb(${standRgb})`;
-      legColor = `rgb(${standRgb})`;
+      surfaceColor = 'var(--stand-color)';
+      legColor = 'var(--stand-color)';
     } else if (state === 'raising' || state === 'lowering') {
       surfaceColor = '#9ca3af'; // motion grey
       legColor = '#6b7280';
@@ -373,7 +378,7 @@ export class LinakDeskCard extends LitElement {
 
     let fillColor = 'var(--sit-color, #3b82f6)';
     if (state === 'stand') {
-      fillColor = 'var(--stand-color, #22c55e)';
+      fillColor = 'var(--stand-color, #77bb41)';
     } else if (state === 'raising' || state === 'lowering') {
       fillColor = 'var(--grey-fill, #374151)';
     }
@@ -513,10 +518,10 @@ export class LinakDeskCard extends LitElement {
         --sit-text: rgb(59, 130, 246);
         --sit-border: rgba(59, 130, 246, 0.22);
 
-        --stand-color: rgb(34, 197, 94);
-        --stand-dim: rgba(34, 197, 94, 0.14);
-        --stand-text: rgb(34, 197, 94);
-        --stand-border: rgba(34, 197, 94, 0.22);
+        --stand-color: rgb(119, 187, 65);
+        --stand-dim: rgba(119, 187, 65, 0.14);
+        --stand-text: rgb(119, 187, 65);
+        --stand-border: rgba(119, 187, 65, 0.22);
 
         --grey-fill: #374151;
         --grey-dim: rgba(107, 114, 128, 0.1);
@@ -672,9 +677,9 @@ export class LinakDeskCard extends LitElement {
       }
 
       .btn-active-stand {
-        background: var(--stand-color, rgb(34, 197, 94));
+        background: var(--stand-color, rgb(119, 187, 65));
         color: white;
-        border: 1px solid var(--stand-color, rgb(34, 197, 94));
+        border: 1px solid var(--stand-color, rgb());
       }
 
       .btn-outline-sit {
@@ -684,9 +689,9 @@ export class LinakDeskCard extends LitElement {
       }
 
       .btn-outline-stand {
-        background: var(--stand-dim, rgba(34, 197, 94, 0.14));
+        background: var(--stand-dim, rgba(119, 187, 65, 0.14));
         color: var(--stand-text, #86efac);
-        border: 1px solid var(--stand-border, rgba(34, 197, 94, 0.22));
+        border: 1px solid var(--stand-border, rgba(119, 187, 65, 0.22));
       }
 
       .btn-outline-grey {
