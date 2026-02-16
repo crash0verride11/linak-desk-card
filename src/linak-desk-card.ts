@@ -558,7 +558,7 @@ export class LinakDeskCard extends LitElement {
         display: flex;
         flex-direction: row;
         align-items: flex-end;
-        gap: 8px;
+        gap: 12px;
       }
 
       .col-desk {
@@ -599,7 +599,6 @@ export class LinakDeskCard extends LitElement {
         display: flex;
         flex-direction: row;
         align-items: stretch;
-        padding: 4px 0px;
         gap: 12px;
       }
 
@@ -635,7 +634,7 @@ export class LinakDeskCard extends LitElement {
         border-radius: 12px;
         padding: 0 14px;
         width: 100%;
-        height: 36px;
+        height: 40px;
         min-width: 120px;
         font-size: 14px;
         font-weight: 500;
