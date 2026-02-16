@@ -50,6 +50,14 @@ export class LinakDeskCardEditor extends LitElement implements LovelaceCardEdito
               { name: 'stand_height', selector: { number: { mode: 'box', step: 0.01 } } },
             ],
           },
+          {
+            type: 'expandable',
+            title: localize('editor.section_colors'),
+            schema: [
+              { name: 'sit_color', selector: { color_rgb: {} } },
+              { name: 'stand_color', selector: { color_rgb: {} } },
+            ],
+          },
         ]}
         .computeLabel=${this._computeLabel}
         @value-changed=${this._valueChanged}

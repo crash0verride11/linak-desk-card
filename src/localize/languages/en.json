@@ -20,7 +20,10 @@
     "presets":"Presets",
     "section_entities":"Entities",
     "section_height":"Height Configuration",
-    "section_presets":"Preset Buttons"
+    "section_presets":"Preset Buttons",
+    "section_colors":"Colors",
+    "sit_color":"Sit Color",
+    "stand_color":"Stand Color"
   },
   "status": {
     "connected": "Connected",

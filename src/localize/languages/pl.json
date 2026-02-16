@@ -14,7 +14,10 @@
     "moving_sensor":"Sensor ruchu biurka (Wymagane)",
     "min_height":"Minimalna wysokość (Opcjonalne)",
     "max_height":"Maksymalna wysokość (Opcjonalne)",
-    "presets":"Profile"
+    "presets":"Profile",
+    "section_colors":"Kolory",
+    "sit_color":"Kolor siedzenia",
+    "stand_color":"Kolor stania"
   },
   "status": {
     "connected": "Połączono",

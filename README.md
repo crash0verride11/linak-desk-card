@@ -52,8 +52,6 @@ type: custom:linak-desk-card
 name: Desk
 desk: cover.desk
 height_sensor: sensor.desk_height
-min_height: 25
-max_height: 50
 ```
 
 ### Full Configuration
@@ -65,8 +63,8 @@ desk: cover.desk
 height_sensor: sensor.desk_height
 moving_sensor: binary_sensor.desk_moving      # Optional - fallback motion detection
 connection_sensor: binary_sensor.desk_connection  # Optional
-min_height: 25    # inches or cm
-max_height: 50    # inches or cm
+min_height: 24.75    # Optional - inches or cm (defaults to Idasen by unit)
+max_height: 50       # Optional - inches or cm (defaults to Idasen by unit)
 sit_height: 30.8  # Optional - defaults based on unit
 stand_height: 42.5  # Optional - defaults based on unit
 ```
@@ -79,8 +77,8 @@ stand_height: 42.5  # Optional - defaults based on unit
 | `name` | `string` | **Optional** | Card name | `` |
 | `desk` | `string` | **Required** | Home Assistant cover entity ID | `none` |
 | `height_sensor` | `string` | **Required** | Home Assistant sensor entity ID for desk height | `none` |
-| `min_height` | `number` | **Required** | Desk height at minimum position (in/cm) | `none` |
-| `max_height` | `number` | **Required** | Desk height at maximum position (in/cm) | `none` |
+| `min_height` | `number` | **Optional** | Desk height at minimum position (in/cm) | Idasen default by unit |
+| `max_height` | `number` | **Optional** | Desk height at maximum position (in/cm) | Idasen default by unit |
 | `sit_height` | `number` | **Optional** | Preferred sitting height | Auto-detected |
 | `stand_height` | `number` | **Optional** | Preferred standing height | Auto-detected |
 | `moving_sensor` | `string` | **Optional** | Binary sensor for desk motion (fallback) | `none` |
@@ -88,10 +86,10 @@ stand_height: 42.5  # Optional - defaults based on unit
 
 ### Unit Detection
 
-The card automatically detects the unit of measurement from your `height_sensor` and uses appropriate defaults:
+The card automatically detects the unit of measurement from your `height_sensor` and uses Idäsen defaults:
 
 **Inches:**
-- `min_height`: 25 in
+- `min_height`: 24.75 in
 - `max_height`: 50 in
 - `sit_height`: 30.8 in
 - `stand_height`: 42.5 in
@@ -102,13 +100,15 @@ The card automatically detects the unit of measurement from your `height_sensor`
 - `sit_height`: 78 cm
 - `stand_height`: 108 cm
 
+For non-Idasen desks, it is strongly recommended to manually set `min_height` and `max_height` for your desk model.
+
 ## How It Works
 
 ### Motion Detection
 
 The card detects desk motion in two ways:
 
-1. **Height-based detection** (primary): Monitors height sensor changes. Movement detected when height changes by >0.1 units. Motion state clears after 1.5s of no changes.
+1. **Height-based detection** (primary): Monitors height sensor changes. Movement detected when height changes by >0.1 units. Motion state clears after 2s of no changes.
 
 2. **Sensor fallback** (optional): If `moving_sensor` is configured, it will be used when height-based detection doesn't detect motion.
 

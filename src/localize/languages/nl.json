@@ -14,7 +14,10 @@
     "moving_sensor":"Bewegingssensor (Vereist)",
     "min_height":"Min. hoogte (Optioneel)",
     "max_height":"Max. hoogte (Optioneel)",
-    "presets":"Voorinstellingen"
+    "presets":"Voorinstellingen",
+    "section_colors":"Kleuren",
+    "sit_color":"Zitkleur",
+    "stand_color":"Stakleur"
   },
   "status": {
     "connected": "Verbonden",

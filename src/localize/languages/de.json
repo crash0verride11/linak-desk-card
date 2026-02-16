@@ -14,7 +14,10 @@
 		"moving_sensor": "Höhen-Sensor (erforderlich)",
 		"min_height": "Minimale Höhe (optional)",
 		"max_height": "Maximale Höhe (optional)",
-		"presets": "Voreinstellungen"
+		"presets": "Voreinstellungen",
+		"section_colors": "Farben",
+		"sit_color": "Sitzfarbe",
+		"stand_color": "Stehfarbe"
 	},
 	"status": {
 		"connected": "Verbunden",

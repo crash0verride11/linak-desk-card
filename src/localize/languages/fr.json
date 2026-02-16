@@ -14,7 +14,10 @@
     "moving_sensor":"Capteur de hauteur (Requis)",
     "min_height":"Hauteur minimale (Requis)",
     "max_height":"Hauteur maximale (Requis)",
-    "presets":"Réglages"
+    "presets":"Réglages",
+    "section_colors":"Couleurs",
+    "sit_color":"Couleur assis",
+    "stand_color":"Couleur debout"
   },
   "status": {
     "connected": "Connecté",
