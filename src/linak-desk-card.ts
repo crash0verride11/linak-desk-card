@@ -280,6 +280,13 @@ export class LinakDeskCard extends LitElement {
       heightColor = 'var(--grey-text, #9ca3af)'; // motion grey
     }
 
+    let stateColor = 'var(--sit-color)';
+    if (state === 'stand') {
+      stateColor = 'var(--stand-color)';
+    } else if (state === 'raising' || state === 'lowering') {
+      stateColor = 'var(--grey-text, #9ca3af)';
+    }
+
     const colorVars = `
       --sit-color: ${sitCss};
       --sit-dim: color-mix(in srgb, ${sitCss} 14%, transparent);
@@ -289,6 +296,7 @@ export class LinakDeskCard extends LitElement {
       --stand-dim: color-mix(in srgb, ${standCss} 14%, transparent);
       --stand-text: ${standCss};
       --stand-border: color-mix(in srgb, ${standCss} 22%, transparent);
+      --state-color: ${stateColor};
     `;
 
     // Round height to 1 decimal place
@@ -531,10 +539,27 @@ export class LinakDeskCard extends LitElement {
       }
 
       ha-card {
+        position: relative;
+        overflow: hidden;
         padding: 14px;
         border-radius: 14px;
         background: var(--card-background-color, #1c2028);
         border: 1px solid var(--divider-color, rgba(255, 255, 255, 0.07));
+      }
+
+      ha-card::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: var(--state-color);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 180ms ease-in-out;
+        border-radius: inherit;
+      }
+
+      ha-card:hover::after {
+        opacity: 0.02;
       }
 
       /* ── 2-column layout ──────────────────── */
