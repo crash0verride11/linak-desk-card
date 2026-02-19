@@ -152,6 +152,13 @@ export class LinakDeskCard extends LitElement {
   }
 
   get deskState(): DeskState {
+    if (
+      this.hass.states[this.config.height_sensor]?.state === 'unavailable' ||
+      this.hass.states[this.config.desk]?.state === 'unavailable'
+    ) {
+      return 'unavailable';
+    }
+
     const sitHeight = this.config.sit_height ?? this.sitHeightDefault;
     const standHeight = this.config.stand_height ?? this.standHeightDefault;
 
@@ -272,7 +279,7 @@ export class LinakDeskCard extends LitElement {
     const sitCss = this.computeCssColor(this.sitColor);
     const standCss = this.computeCssColor(this.standColor);
     const isMoving = state === 'raising' || state === 'lowering';
-    const stateColor = isMoving ? 'var(--grey-text, #9ca3af)' :
+    const stateColor = (isMoving || state === 'unavailable') ? 'var(--grey-text, #9ca3af)' :
                        state === 'stand' ? 'var(--stand-color)' : 'var(--sit-color)';
 
     const colorVars = `
@@ -288,7 +295,7 @@ export class LinakDeskCard extends LitElement {
     `;
 
     // Round height to 1 decimal place
-    const displayHeight = Math.round(this.height * 10) / 10;
+    const displayHeight = state === 'unavailable' ? '--' : String(Math.round(this.height * 10) / 10);
 
     return html`
       <ha-card style="${colorVars}">
@@ -330,10 +337,11 @@ export class LinakDeskCard extends LitElement {
   renderDeskSVG(state: DeskState): TemplateResult {
     const stateClass = `state-${state}`;
     const isMoving = state === 'raising' || state === 'lowering';
+    const isGreyed = isMoving || state === 'unavailable';
     const color = 'var(--state-color)';
-    const surfaceOpacity = isMoving ? 0.7 : 1.0;
-    const legOpacity = isMoving ? 0.3 : 0.4;
-    const baseOpacity = isMoving ? 0.4 : 0.6;
+    const surfaceOpacity = isGreyed ? 0.7 : 1.0;
+    const legOpacity = isGreyed ? 0.3 : 0.4;
+    const baseOpacity = isGreyed ? 0.4 : 0.6;
 
     return html`
       <svg class="desk-svg ${stateClass}" width="60" height="55" viewBox="0 0 60 48">
@@ -357,7 +365,8 @@ export class LinakDeskCard extends LitElement {
   renderGauge(state: DeskState): TemplateResult {
     const gaugeHeight = `${this.alpha * 100}%`;
     const isMoving = state === 'raising' || state === 'lowering';
-    const fillColor = isMoving ? 'var(--grey-fill, #374151)' : 'var(--state-color)';
+    const isGreyed = isMoving || state === 'unavailable';
+    const fillColor = isGreyed ? 'var(--grey-fill, #374151)' : 'var(--state-color)';
     const animClass = isMoving ? 'gauge-anim' : '';
 
     return html`

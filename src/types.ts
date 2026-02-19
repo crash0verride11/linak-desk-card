@@ -33,4 +33,4 @@ export interface LinakDeskCardConfig extends LovelaceCardConfig {
   }[];
 }
 
-export type DeskState = 'sit' | 'raising' | 'stand' | 'lowering';
+export type DeskState = 'sit' | 'raising' | 'stand' | 'lowering' | 'unavailable';
